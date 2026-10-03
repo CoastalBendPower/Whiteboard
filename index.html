@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>CBPS Whiteboard</title>
+  <title>Whiteboard</title>
   <style>
     :root{
       --navy:#123f73;
@@ -24,6 +24,11 @@
       color:white;padding:18px 22px;border-bottom:5px solid var(--teal)
     }
     .header-inner{display:flex;gap:16px;align-items:center;justify-content:space-between;max-width:1500px;margin:auto}
+    .header-right{display:flex;align-items:center;gap:14px}
+    .ph-home{display:block;width:52px;height:52px;border-radius:50%;overflow:hidden;flex:none;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+    .ph-home img{width:100%;height:100%;object-fit:cover;display:block}
+    .employee.multi strong{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .job-pill{font-style:normal;font-size:10px;font-weight:800;color:#7a5200;background:#fff4d6;border:1px solid #f5b100;border-radius:999px;padding:1px 7px}
     .header-user{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
     .header-user .user-name{font-weight:800;font-size:16px}
     .header-user .user-actions{display:flex;gap:8px}
@@ -115,6 +120,20 @@
     .check-row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #eef2f6;font-size:14px}
     .check-row:last-child{border-bottom:0}
     .check-row input{width:20px;height:20px;flex:none}
+    .check-item{border-bottom:1px solid #eef2f6}
+    .check-item:last-child{border-bottom:0}
+    .check-item .check-row{border-bottom:0}
+    .split-choice{flex-wrap:wrap;gap:6px 14px;align-items:center;margin:0 0 10px 30px;padding:8px 10px;background:#fff4d6;border:1px solid #f5b100;border-radius:10px;font-size:13px;font-weight:700;color:#7a5200}
+    .split-choice span{flex-basis:100%}
+    .split-choice label{display:flex;gap:6px;align-items:center;cursor:pointer}
+    .split-choice input{width:18px;height:18px}
+    #leadSplit .split-choice{margin:8px 0 0}
+    .ctx-menu{position:fixed;z-index:10000;background:white;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(9,42,79,.25);min-width:230px;max-width:320px;max-height:340px;overflow:auto;padding:6px}
+    .ctx-title{font-size:12px;font-weight:800;color:var(--muted);padding:6px 8px}
+    .ctx-item{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px 8px;font-size:13px;font-weight:600;color:var(--text)}
+    .ctx-item:hover{background:#e9fbfd}
+    .ctx-item b{color:var(--navy);margin-right:4px}
+    .ctx-empty{font-size:13px;color:var(--muted);padding:8px}
     .check-row small{display:block;color:var(--muted);font-size:12px}
 
     .version-footer{max-width:1500px;margin:0 auto 24px;padding:10px 12px;color:var(--muted);font-size:12px;text-align:center}
@@ -123,7 +142,8 @@
       header{padding:15px 16px}
       .header-inner{align-items:center;gap:12px}
       .logo{width:62px;height:62px}
-      .header-brand .sub{display:none}
+      .ph-home{width:42px;height:42px}
+      .header-right{gap:10px}
       .header-user .user-name{font-size:14px}
       h1{font-size:23px;line-height:1.12}
       .sub{font-size:13px;line-height:1.3}
@@ -148,11 +168,13 @@
       <div class="header-brand">
         <img class="logo" src="https://drive.google.com/thumbnail?id=1vBuXxTwkTToVzAmDnBU6y_zb7KnnnIVT&sz=w240" alt="CBPS Logo">
         <div>
-          <h1>Coastal Bend Power Services, LLC</h1>
-          <div class="sub">Crew Whiteboard — who is on which job</div>
+          <h1>Whiteboard</h1>
         </div>
       </div>
-      <div class="header-user" id="headerUser"></div>
+      <div class="header-right">
+        <a class="ph-home" href="https://coastalbendpower.github.io/PowerHub/" title="Back to PowerHub" aria-label="Back to PowerHub"><img src="https://drive.google.com/thumbnail?id=1Lnf2-p068Z0K-5AScCj2qxQis0TEzY_W&sz=w200" alt="PowerHub"></a>
+        <div class="header-user" id="headerUser"></div>
+      </div>
     </div>
   </header>
 
@@ -183,7 +205,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.8.3
+    CBPS Whiteboard — v0.8.6
   </footer>
 
   <!-- Unlock -->
@@ -224,7 +246,8 @@
       </div>
 
       <label class="field" for="jobLead">Crew lead</label>
-      <select id="jobLead" class="modal-input" onchange="renderCrewChecklist()"></select>
+      <select id="jobLead" class="modal-input" onchange="renderLeadSplit(); renderCrewChecklist()"></select>
+      <div id="leadSplit"></div>
 
       <label class="field">Crew</label>
       <div class="check-list" id="jobCrew"></div>
@@ -236,6 +259,9 @@
       <div id="jobMessage" class="modal-message"></div>
     </div>
   </div>
+
+  <!-- Right-click: split to another job -->
+  <div id="splitMenu" class="ctx-menu" style="display:none;"></div>
 
   <!-- Mark complete -->
   <div id="completeModal" class="modal-backdrop" style="display:none;">
@@ -291,6 +317,7 @@ let editCounter = 0;      // bumps on every edit so a stale background refresh i
 let saveQueue = Promise.resolve();
 let saveFailed = false;   // last save failed; cleared by the next good save
 let dragId = null;
+let dragFromJob = '';   // job the dragged card came from ('' = Unassigned)
 let dragging = false;
 let adminOpen = false;
 let settingsSection = 'employees';
@@ -382,10 +409,15 @@ function peopleById(){
   return map;
 }
 
-function assignmentByPerson(){
+// Person id -> list of their current assignments (a person can be on more than one job).
+function assignmentsByPerson(){
   const map = {};
-  BOARD.assignments.forEach(a => { map[a.nodeId] = a; });
+  BOARD.assignments.forEach(a => { (map[a.nodeId] = map[a.nodeId] || []).push(a); });
   return map;
+}
+
+function jobCount(nodeId){
+  return new Set(BOARD.assignments.filter(a => a.nodeId === nodeId).map(a => a.jobNo)).size;
 }
 
 function jobsOnBoard(){
@@ -398,7 +430,7 @@ function render(){
   renderToolbar();
 
   const people = peopleById();
-  const assigned = assignmentByPerson();
+  const assigned = assignmentsByPerson();
   const unassigned = BOARD.people
     .filter(p => p.visible && !assigned[p.id])
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -451,8 +483,9 @@ function jobMarkup(job, people, editing){
 }
 
 function employeeMarkup(p, isLead){
-  return `<div class="employee${isLead ? ' lead' : ''}" draggable="${isEditing() ? 'true' : 'false'}" data-id="${escapeHtml(p.id)}">
-    <strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.title || '')}</span>
+  const jobs = jobCount(p.id);
+  return `<div class="employee${isLead ? ' lead' : ''}${jobs > 1 ? ' multi' : ''}" draggable="${isEditing() ? 'true' : 'false'}" data-id="${escapeHtml(p.id)}">
+    <strong>${escapeHtml(p.name)}${jobs > 1 ? `<em class="job-pill">${jobs} jobs</em>` : ''}</strong><span>${escapeHtml(p.title || '')}</span>
   </div>`;
 }
 
@@ -488,8 +521,16 @@ function wireDragDrop(){
   });
 
   document.querySelectorAll('.employee').forEach(card => {
+    // Right-click (desktop): split this person onto another job, keeping the one they're on.
+    card.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      openSplitMenu(card.dataset.id, e.clientX, e.clientY);
+    });
     card.addEventListener('dragstart', e => {
       dragId = card.dataset.id;
+      const fromJob = card.closest('.job');
+      dragFromJob = fromJob ? fromJob.dataset.job : '';
       dragging = true;
       e.dataTransfer.setData('text/plain', dragId);
     });
@@ -520,19 +561,20 @@ function wireDragDrop(){
       e.preventDefault();
       const zone = zoneFor(e);
       clearOver();
-      moveEmployee(e.dataTransfer.getData('text/plain') || dragId, zone.dataset.job || '', zone.dataset.role || '');
+      moveEmployee(e.dataTransfer.getData('text/plain') || dragId, dragFromJob, zone.dataset.job || '', zone.dataset.role || '');
     });
   });
 }
 
-function moveEmployee(nodeId, jobNo, role){
+// Drag = move one placement: off fromJob ('' = from Unassigned) and onto jobNo ('' = to Unassigned).
+// The person's other jobs stay as they are.
+function moveEmployee(nodeId, fromJob, jobNo, role){
   if (!isEditing() || busy || !nodeId) return;
-  const current = assignmentByPerson()[nodeId];
-  if (current && current.jobNo === jobNo && current.role === role) return;
-  if (!current && !jobNo) return;
+  const here = BOARD.assignments.find(a => a.nodeId === nodeId && a.jobNo === jobNo);
+  if (fromJob === jobNo && (!jobNo || (here && here.role === role))) return;
 
   // Show the move right away; it saves in the background.
-  BOARD.assignments = BOARD.assignments.filter(a => a.nodeId !== nodeId);
+  BOARD.assignments = BOARD.assignments.filter(a => !(a.nodeId === nodeId && (a.jobNo === fromJob || a.jobNo === jobNo)));
   if (jobNo) {
     if (role === 'Lead') {
       BOARD.assignments.forEach(a => { if (a.jobNo === jobNo && a.role === 'Lead') a.role = 'Crew'; });
@@ -542,9 +584,43 @@ function moveEmployee(nodeId, jobNo, role){
   render();
 
   // On failure, put the board back to the server's copy but keep the error message showing.
-  queueEdit('moveAssignment', {nodeId, jobNo, role})
+  queueEdit('moveAssignment', {nodeId, fromJob, jobNo, role})
     .catch(() => callApi('getBoard').then(board => { BOARD = board; render(); }).catch(() => {}));
 }
+
+// Right-click menu: lists active jobs this person isn't on yet. Picking one adds them there as Crew.
+function openSplitMenu(nodeId, x, y){
+  if (!isEditing() || busy) return;
+  const person = peopleById()[nodeId];
+  if (!person) return;
+  const onJobs = new Set(BOARD.assignments.filter(a => a.nodeId === nodeId).map(a => a.jobNo));
+  const jobs = jobsOnBoard().filter(j => !onJobs.has(j.jobNo));
+  const menu = document.getElementById('splitMenu');
+
+  menu.innerHTML = `<div class="ctx-title">${onJobs.size ? 'Split' : 'Add'} ${escapeHtml(person.name)} to job:</div>` +
+    (jobs.length
+      ? jobs.map(j => `<button class="ctx-item" data-job="${escapeHtml(j.jobNo)}"><b>${escapeHtml(j.jobNo)}</b> ${escapeHtml(j.customer)}</button>`).join('')
+      : '<div class="ctx-empty">Already on every active job.</div>');
+  menu.querySelectorAll('[data-job]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      closeSplitMenu();
+      moveEmployee(nodeId, '', btn.dataset.job, 'Crew');
+    });
+  });
+
+  menu.style.display = 'block';
+  const r = menu.getBoundingClientRect();
+  menu.style.left = Math.max(8, Math.min(x, window.innerWidth - r.width - 8)) + 'px';
+  menu.style.top = Math.max(8, Math.min(y, window.innerHeight - r.height - 8)) + 'px';
+}
+
+function closeSplitMenu(){
+  document.getElementById('splitMenu').style.display = 'none';
+}
+
+document.addEventListener('click', e => { if (!e.target.closest('#splitMenu')) closeSplitMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSplitMenu(); });
+window.addEventListener('scroll', closeSplitMenu, true);
 
 // Popup saves: wait for the result, block drags meanwhile.
 function popupEdit(action, body, btnId, btnText, messageId, modalId){
@@ -654,10 +730,13 @@ function restoreSession(){
 
 // No jobNo = Add Job. With jobNo = edit that job's lead and crew.
 let EDIT_JOB = null;
+// Person id -> 'split' (keep their other jobs, the default) or 'move' (take them off other jobs).
+let SPLIT_MODE = {};
 
 function openJobModal(jobNo){
   if (!isEditing() || busy) return;
   EDIT_JOB = jobNo || null;
+  SPLIT_MODE = {};
   const onJob = EDIT_JOB ? BOARD.assignments.filter(a => a.jobNo === EDIT_JOB) : [];
   const currentLead = onJob.find(a => a.role === 'Lead');
 
@@ -681,6 +760,7 @@ function openJobModal(jobNo){
   lead.appendChild(new Option('Select Lead', ''));
   pickerPeople().forEach(p => lead.appendChild(new Option(p.name + currentSpotLabel(p.id), p.id)));
   lead.value = currentLead ? currentLead.nodeId : '';
+  renderLeadSplit();
 
   document.getElementById('jobCrew').innerHTML = '';
   renderCrewChecklist(onJob.filter(a => a.role === 'Crew').map(a => a.nodeId));
@@ -697,23 +777,73 @@ function toggleNewJobFields(){
 function renderCrewChecklist(preChecked){
   const leadId = document.getElementById('jobLead').value;
   const box = document.getElementById('jobCrew');
-  const checked = new Set(preChecked || Array.from(box.querySelectorAll('input:checked')).map(i => i.value));
+  const checked = new Set(preChecked || Array.from(box.querySelectorAll('input[type=checkbox]:checked')).map(i => i.value));
   box.innerHTML = pickerPeople()
     .filter(p => p.id !== leadId)
-    .map(p => `<label class="check-row">
-        <input type="checkbox" value="${escapeHtml(p.id)}" ${checked.has(p.id) ? 'checked' : ''}>
-        <span>${escapeHtml(p.name)}<small>${escapeHtml(p.title || '')}${escapeHtml(currentSpotLabel(p.id))}</small></span>
-      </label>`)
+    .map(p => `<div class="check-item">
+        <label class="check-row">
+          <input type="checkbox" value="${escapeHtml(p.id)}" ${checked.has(p.id) ? 'checked' : ''}>
+          <span>${escapeHtml(p.name)}<small>${escapeHtml(p.title || '')}${escapeHtml(currentSpotLabel(p.id))}</small></span>
+        </label>
+        ${splitChoiceMarkup(p.id, checked.has(p.id))}
+      </div>`)
     .join('');
+
+  box.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const choice = box.querySelector(`.split-choice[data-for="${CSS.escape(cb.value)}"]`);
+      if (choice) choice.style.display = cb.checked ? 'flex' : 'none';
+    });
+  });
+  wireSplitRadios(box);
+}
+
+// Jobs (other than this one) a person is on, if they're not on this job yet. Empty = no question needed.
+function otherJobsNeedingChoice(nodeId){
+  const list = BOARD.assignments.filter(a => a.nodeId === nodeId);
+  if (EDIT_JOB && list.some(a => a.jobNo === EDIT_JOB)) return [];
+  return Array.from(new Set(list.map(a => a.jobNo)));
+}
+
+function splitChoiceMarkup(nodeId, show){
+  const others = otherJobsNeedingChoice(nodeId);
+  if (!others.length) return '';
+  const mode = SPLIT_MODE[nodeId] || 'split';
+  const name = 'mode-' + nodeId;
+  return `<div class="split-choice" data-for="${escapeHtml(nodeId)}" style="display:${show ? 'flex' : 'none'}">
+      <span>Assigned to ${escapeHtml(others.join(', '))}. Split?</span>
+      <label><input type="radio" name="${escapeHtml(name)}" value="split" data-person="${escapeHtml(nodeId)}" ${mode === 'split' ? 'checked' : ''}> Yes, both jobs</label>
+      <label><input type="radio" name="${escapeHtml(name)}" value="move" data-person="${escapeHtml(nodeId)}" ${mode === 'move' ? 'checked' : ''}> No, move here</label>
+    </div>`;
+}
+
+function wireSplitRadios(root){
+  root.querySelectorAll('.split-choice input[type=radio]').forEach(r => {
+    r.addEventListener('change', () => { if (r.checked) SPLIT_MODE[r.dataset.person] = r.value; });
+  });
+}
+
+function renderLeadSplit(){
+  const leadId = document.getElementById('jobLead').value;
+  const box = document.getElementById('leadSplit');
+  box.innerHTML = leadId ? splitChoiceMarkup(leadId, true) : '';
+  wireSplitRadios(box);
+}
+
+// People whose answer is "No, move here" (only those actually being added to this job).
+function moveIdsFor(leadId, crewIds){
+  return [leadId].concat(crewIds)
+    .filter(id => id && SPLIT_MODE[id] === 'move' && otherJobsNeedingChoice(id).length);
 }
 
 function confirmJobModal(){
   const message = document.getElementById('jobMessage');
   const leadId = document.getElementById('jobLead').value;
-  const crewIds = Array.from(document.querySelectorAll('#jobCrew input:checked')).map(i => i.value);
+  const crewIds = Array.from(document.querySelectorAll('#jobCrew input[type=checkbox]:checked')).map(i => i.value);
+  const moveIds = moveIdsFor(leadId, crewIds);
 
   if (EDIT_JOB) {
-    popupEdit('setJobTeam', {jobNo: EDIT_JOB, leadId, crewIds}, 'jobSaveBtn', 'Save Job', 'jobMessage', 'jobModal');
+    popupEdit('setJobTeam', {jobNo: EDIT_JOB, leadId, crewIds, moveIds}, 'jobSaveBtn', 'Save Job', 'jobMessage', 'jobModal');
     return;
   }
 
@@ -732,15 +862,15 @@ function confirmJobModal(){
   if (isNew && !job.jobNo) { message.textContent = 'Enter the Job #.'; return; }
   if (isNew && !job.customer) { message.textContent = 'Enter the customer.'; return; }
 
-  popupEdit('saveJob', {job, isNew, leadId, crewIds}, 'jobSaveBtn', 'Save Job', 'jobMessage', 'jobModal');
+  popupEdit('saveJob', {job, isNew, leadId, crewIds, moveIds}, 'jobSaveBtn', 'Save Job', 'jobMessage', 'jobModal');
 }
 
 // Picker order: on this job, then unassigned field, then field people on other jobs, then Admin.
 function pickerPeople(){
-  const assigned = assignmentByPerson();
+  const assigned = assignmentsByPerson();
   const rank = p => {
-    const a = assigned[p.id];
-    let r = !a ? 1 : (EDIT_JOB && a.jobNo === EDIT_JOB ? 0 : 2);
+    const list = assigned[p.id] || [];
+    let r = !list.length ? 1 : (EDIT_JOB && list.some(a => a.jobNo === EDIT_JOB) ? 0 : 2);
     if (p.admin && r !== 0) r = 3;
     return r;
   };
@@ -749,9 +879,11 @@ function pickerPeople(){
     .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
 }
 
+// Other jobs this person is on (ticking them here adds this job; it doesn't move them).
 function currentSpotLabel(nodeId){
-  const a = assignmentByPerson()[nodeId];
-  return a ? ' · now on ' + a.jobNo + (a.role === 'Lead' ? ' (Lead)' : '') : '';
+  const others = (assignmentsByPerson()[nodeId] || []).filter(a => a.jobNo !== EDIT_JOB);
+  if (!others.length) return '';
+  return ' · also on ' + others.map(a => a.jobNo + (a.role === 'Lead' ? ' (Lead)' : '')).join(', ');
 }
 
 /* ---------- Mark complete ---------- */
