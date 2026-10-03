@@ -297,7 +297,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Org Chart Admin — v0.5.0
+    CBPS Org Chart Admin — v0.6.0
   </footer>
 
 <script>
@@ -308,62 +308,34 @@ const LEADS = {
   residential: ['BLAKE','ZACHERY']
 };
 
-const FALLBACK_ROWS = [
-  ['ALTEZA','Person','Alteza Cumpian','Director of Business Services','ADMIN','Business / Admin','','No',true,'','','','BUSINESS_ADMIN',''],
-  ['KRYSTAL','Person','Krystal Kollaja','Administrative Assistant','ADMIN','Business / Admin','','No',true,'','','','BUSINESS_ADMIN',''],
-  ['SHANE','Person','Shane Stuart','Accountant (PT)','ADMIN','Business / Admin','','Yes',true,'','','','BUSINESS_ADMIN','Part Time'],
-  ['WILL','Person','Will Sorensen','Safety Director (PT)','SAFETY','Safety / Training','','Yes',true,'','','','SAFETY_TRAINING','Part Time'],
-  ['LEE','Person','Lee Hasdorff','Field Leadership','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
-  ['KURT','Person','Kurt Forester','Field Leadership','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
-  ['MARK','Person','Mark Fehner','Field Service Supervisor','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
-  ['PHILIP','Person','Philip Kollaja','Field Service Supervisor','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
-  ['MARSHALL','Person','Marshall Mach','Field Service Supervisor','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
-  ['MOKWA','Person','Jonathon Mokwa','Tech 2, Journeyman','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
-  ['BLAKE','Person','Blake Woodring','Tech 3, Lead','FIELDLEAD','Field Leadership','','No',true,'','Residential','','RESIDENTIAL_LEAD',''],
-  ['ZACHERY','Person','Zachery Young','Journeyman','FIELDLEAD','Field Leadership','','No',true,'','Residential','','RESIDENTIAL_LEAD',''],
-  ['BARRERA','Person','Jeffrey Barrera','Tech 1, Apprentice','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['EVANS','Person','Nathan Evans','Apprentice Electrician','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['LANE','Person','Lane Fikes','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['GAIDA','Person','Paul Gaida','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['GEFFERT','Person','Cody Geffert','Apprentice Electrician','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['ZHASDORFF','Person','Zachary Hasdorff','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['HAWORTH','Person','Weston Haworth','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['HENRY','Person','Hayden Henry','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['HILBRICH','Person','Ricky Hilbrich','Tech 1, Apprentice','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['MOTAL','Person','Nathan Motal','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['STEIN','Person','Cayden Stein','Tech 1 (PT)','PART_TIME_INTERN','Part Time / Intern','','Yes',true,'','','','PART_TIME_INTERN','Part Time Employee'],
-  ['TORRES','Person','Jonathon Torres','Tech 1, Apprentice','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['WILLBERG','Person','Dalan Willberg','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['GWOODRING','Person','Gregory Woodring','Apprentice Electrician','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
-  ['TRENT','Person','Trent Foerster','Summer Intern','PART_TIME_INTERN','Part Time / Intern','','Yes',true,'','','','PART_TIME_INTERN','Summer Intern'],
-  ['CADEN','Person','Caden Gonzales','Part Time Employee','PART_TIME_INTERN','Part Time / Intern','','Yes',true,'Works during the year while attending college.','','','PART_TIME_INTERN','Part Time Employee']
-];
+const API_URL = 'https://script.google.com/macros/s/AKfycbw22j6Z8pW_uPzsElHs3qTUCyeqnDGhYwegQMIGLFxLL_8UDJh2wzzyIsYx5muuIi7G/exec';
 
-function fallbackObjects(){
-  const headers = ['Node ID','Node Type','Display Name','Title','Parent ID','Org Group','Sort','PT?','Show on Chart','Notes','Division','Supervisor ID','Visual Group','Employment Category'];
-  return FALLBACK_ROWS.map(r => Object.fromEntries(headers.map((h,i)=>[h,r[i]])));
+// GET ?action=... or POST {action,...}; backend replies {ok:true,data} or {ok:false,error}.
+function callApi(action, body){
+  const req = body
+    ? fetch(API_URL, {method:'POST', body: JSON.stringify(Object.assign({action}, body))})
+    : fetch(API_URL + '?action=' + encodeURIComponent(action));
+  return req
+    .then(res => res.json())
+    .then(out => {
+      if (!out || !out.ok) throw new Error((out && out.error) || 'Unknown server error');
+      return out.data;
+    });
 }
 
 function reloadData(){
   setStatus('Loading from Sheet…');
-  if (typeof google !== 'undefined' && google.script && google.script.run) {
-    google.script.run
-      .withSuccessHandler(data => {
-        ORG_ROWS = data.rows || [];
-        render();
-        setStatus(formatLastSaveStatus(data.lastSave) || 'No saved updates logged yet');
-      })
-      .withFailureHandler(err => {
-        ORG_ROWS = fallbackObjects();
-        render();
-        setStatus('Sheet load failed — using fallback data: ' + err.message);
-      })
-      .getOrgData();
-  } else {
-    ORG_ROWS = fallbackObjects();
-    render();
-    setStatus('Preview mode — using fallback data');
-  }
+  callApi('getOrgData')
+    .then(data => {
+      ORG_ROWS = data.rows || [];
+      render();
+      setStatus(formatLastSaveStatus(data.lastSave) || 'No saved updates logged yet');
+    })
+    .catch(err => {
+      ORG_ROWS = [];
+      render();
+      setStatus('Sheet load failed: ' + err.message);
+    });
 }
 
 function render(){
@@ -459,14 +431,9 @@ const LAST_EDITOR_KEY = 'cbpsOrgChartLastEditor';
 
 function loadEditors(){
   const select = document.getElementById('modalEditor');
-  if (!(typeof google !== 'undefined' && google.script && google.script.run)) {
-    fillEditorOptions(['Preview Editor']);
-    return;
-  }
-  google.script.run
-    .withSuccessHandler(names => fillEditorOptions(names || []))
-    .withFailureHandler(() => { select.innerHTML = '<option value="">Could not load editors</option>'; })
-    .getEditors();
+  callApi('getEditors')
+    .then(names => fillEditorOptions(names || []))
+    .catch(() => { select.innerHTML = '<option value="">Could not load editors</option>'; });
 }
 
 function fillEditorOptions(names){
@@ -537,29 +504,22 @@ function confirmSave(){
 
   try { localStorage.setItem(LAST_EDITOR_KEY, editor); } catch (e) {}
 
-  if (typeof google !== 'undefined' && google.script && google.script.run) {
-    if (message) message.textContent = '';
-    setModalBusy(true);
-    setStatus('Saving…');
-    google.script.run
-      .withSuccessHandler(res => {
-        closeSaveModal();
-        const savedBy = res && res.savedBy ? res.savedBy : editor;
-        const savedAt = res && res.savedAt ? new Date(res.savedAt) : new Date();
-        setStatus(formatSavedStatus(savedBy, savedAt));
-      })
-      .withFailureHandler(err => {
-        setModalBusy(false);
-        if (pinInput) { pinInput.value = ''; pinInput.focus(); }
-        if (message) message.textContent = err.message;
-        setStatus('Save failed: ' + err.message);
-      })
-      .saveAssignments({editor, pin, assignments: pendingAssignments});
-  } else {
-    closeSaveModal();
-    copyText(JSON.stringify({editor, assignments: pendingAssignments}, null, 2));
-    setStatus('Preview mode — copied layout JSON instead of saving');
-  }
+  if (message) message.textContent = '';
+  setModalBusy(true);
+  setStatus('Saving…');
+  callApi('saveAssignments', {editor, pin, assignments: pendingAssignments})
+    .then(res => {
+      closeSaveModal();
+      const savedBy = res && res.savedBy ? res.savedBy : editor;
+      const savedAt = res && res.savedAt ? new Date(res.savedAt) : new Date();
+      setStatus(formatSavedStatus(savedBy, savedAt));
+    })
+    .catch(err => {
+      setModalBusy(false);
+      if (pinInput) { pinInput.value = ''; pinInput.focus(); }
+      if (message) message.textContent = err.message;
+      setStatus('Save failed: ' + err.message);
+    });
 }
 
 function copyJson(){
