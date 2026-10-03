@@ -1,0 +1,265 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CBPS Crew Assignments</title>
+  <style>
+    :root{
+      --navy:#123f73;
+      --navy2:#092a4f;
+      --teal:#16a7b8;
+      --line:#c9d8e8;
+      --text:#12263f;
+      --muted:#667085;
+      --warn:#fff7e6;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef4f9;color:var(--text)}
+    .sheet{max-width:1400px;margin:18px auto;background:white;border:1px solid var(--line);border-radius:18px;padding:22px 24px 26px;box-shadow:0 10px 28px rgba(16,50,90,.10);position:relative}
+
+    .top{display:flex;align-items:center;gap:16px;border-bottom:4px solid var(--teal);padding-bottom:14px}
+    .logo{width:64px;height:64px;border-radius:50%;object-fit:contain;border:1px solid var(--line);padding:4px;background:white}
+    .top h1{margin:0;font-size:24px;color:var(--navy2)}
+    .top .sub{margin-top:3px;font-weight:800;color:var(--navy);font-size:15px}
+    .top .meta{margin-top:3px;font-size:12px;color:var(--muted)}
+    .draft{display:inline-block;margin-left:8px;font-size:11px;font-weight:800;color:#7a5200;background:#fff4d6;border:1px solid #f5b100;border-radius:999px;padding:2px 8px;vertical-align:middle}
+
+    .edit-btn{position:absolute;top:18px;right:18px;width:46px;height:46px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(16,50,90,.25)}
+    .edit-btn{border:0;cursor:pointer}
+    .edit-btn svg{width:22px;height:22px;fill:white}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(9,42,79,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}
+    .modal-card{background:white;border-radius:18px;padding:18px;width:min(340px,100%);box-shadow:0 18px 45px rgba(0,0,0,.28)}
+    .modal-card h3{margin:0 0 8px;color:var(--navy)}
+    .modal-card p{margin:0 0 12px;color:var(--muted);font-size:14px}
+    .pin-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:18px}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+    .modal-actions button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;font-size:14px}
+    .btn-primary{background:var(--navy);color:white}
+    .btn-secondary{background:white;color:var(--navy);border:1px solid var(--line) !important}
+    .modal-message{margin-top:10px;color:#b42318;font-size:13px;font-weight:700}
+
+    /* Org chart: root box, connector, then job boxes hanging off a bus line */
+    .root-wrap{display:flex;flex-direction:column;align-items:center;margin-top:20px}
+    .root{background:var(--navy);color:white;border-radius:12px;padding:10px 22px;font-weight:900;font-size:16px;text-align:center}
+    .root small{display:block;font-weight:700;opacity:.85;font-size:12px;margin-top:2px}
+    .stem{width:2px;height:18px;background:var(--line)}
+    .jobs{border-top:2px solid var(--line);padding-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px 14px}
+
+    .job{position:relative;border:2px solid var(--navy);border-radius:12px;overflow:hidden;break-inside:avoid;background:white}
+    .job::before{content:"";position:absolute;top:-20px;left:50%;width:2px;height:18px;background:var(--line)}
+    .job-head{background:var(--navy);color:white;padding:8px 10px}
+    .job-no{font-weight:900;font-size:17px}
+    .job-customer{font-weight:700;font-size:13px;margin-top:2px}
+    .job-loc{font-size:11px;opacity:.85;margin-top:2px}
+    .lead{padding:8px 10px;border-bottom:1px solid var(--line);background:#f3f8fc}
+    .label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+    .lead .name{font-weight:900;color:var(--navy);font-size:14px;margin-top:2px}
+    .person-title{font-size:11px;color:var(--muted)}
+    .crew{padding:6px 10px 8px}
+    .crew ul{list-style:none;margin:4px 0 0;padding:0}
+    .crew li{padding:4px 0;border-bottom:1px dashed #e3ebf3;font-size:13px;font-weight:700}
+    .crew li:last-child{border-bottom:0}
+    .crew li .person-title{display:block;font-weight:400}
+    .none{color:#98a2b3;font-size:12px;font-style:italic}
+    .notes{font-size:11px;color:#664900;background:var(--warn);padding:6px 10px;border-top:1px solid #ffd78a}
+
+    .available{margin-top:22px;border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
+    .available h3{margin:0 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{font-size:12px;font-weight:700;background:#f3f8fc;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+
+    .message{text-align:center;color:var(--muted);font-weight:700;padding:40px 10px}
+    .footer{text-align:center;color:var(--muted);font-size:11px;margin:10px 0 24px}
+
+    @media(max-width:600px){
+      .sheet{margin:0;border-radius:0;border:0;padding:16px}
+      .top{padding-right:52px}
+      .logo{width:48px;height:48px}
+      .top h1{font-size:18px}
+      .edit-btn{top:14px;right:14px}
+    }
+
+    @page{size:landscape;margin:10mm}
+    @media print{
+      body{background:white}
+      .sheet{margin:0;max-width:none;border:0;box-shadow:none;padding:0}
+      .edit-btn,.footer{display:none}
+      .job,.job-head,.root,.lead,.notes{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="top">
+      <img class="logo" src="https://drive.google.com/thumbnail?id=1vBuXxTwkTToVzAmDnBU6y_zb7KnnnIVT&sz=w240" alt="CBPS Logo">
+      <div>
+        <h1>Coastal Bend Power Services, LLC <span class="draft">DRAFT</span></h1>
+        <div class="sub">Crew Assignments</div>
+        <div class="meta" id="meta">Loading…</div>
+      </div>
+    </div>
+
+    <button class="edit-btn" id="editBtn" type="button" onclick="openEditor()" title="Editors: unlock to edit" aria-label="Unlock to edit"></button>
+
+    <div id="chart"><div class="message">Loading crew assignments…</div></div>
+  </div>
+  <div class="footer">CBPS Crew Assignments — v0.8.4 · View only</div>
+
+  <div class="modal-backdrop" id="pinModal">
+    <div class="modal-card">
+      <h3>Editor PIN</h3>
+      <p>Enter your PIN to open the Whiteboard editor.</p>
+      <input class="pin-input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN"
+        aria-label="Editor PIN" onkeydown="if(event.key==='Enter') submitPin()">
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" onclick="closePin()">Cancel</button>
+        <button class="btn-primary" id="pinBtn" type="button" onclick="submitPin()">Unlock</button>
+      </div>
+      <div class="modal-message" id="pinMessage"></div>
+    </div>
+  </div>
+
+<script>
+// Read-only. Pulls the same board data as the Whiteboard editor; no editing here.
+const API_URL = 'https://script.google.com/macros/s/AKfycbw22j6Z8pW_uPzsElHs3qTUCyeqnDGhYwegQMIGLFxLL_8UDJh2wzzyIsYx5muuIi7G/exec';
+
+// Same login the editor uses (same site, so the editor opens already logged in).
+const SESSION_KEY = 'cbpsWhiteboardSession';
+const LOCK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1a5 5 0 0 0-5 5v4H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 9V6a3 3 0 0 1 6 0v4H9z"/></svg>';
+const UNLOCK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1a5 5 0 0 0-5 5v1h2V6a3 3 0 0 1 6 0v4H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5z"/></svg>';
+
+function savedSession(){
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    return s && s.editor && s.token ? s : null;
+  } catch (e) { return null; }
+}
+
+function setEditIcon(){
+  const btn = document.getElementById('editBtn');
+  const session = savedSession();
+  btn.innerHTML = session ? UNLOCK_ICON : LOCK_ICON;
+  btn.title = session ? 'Open editor (' + session.editor + ')' : 'Editors: unlock to edit';
+}
+
+// Logged in on this device: straight to the editor. Otherwise ask for the PIN here.
+function openEditor(){
+  if (savedSession()) { location.href = './index.html'; return; }
+  document.getElementById('pinMessage').textContent = '';
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pinInput').focus(), 50);
+}
+
+function closePin(){ document.getElementById('pinModal').style.display = 'none'; }
+
+function submitPin(){
+  const input = document.getElementById('pinInput');
+  const message = document.getElementById('pinMessage');
+  const btn = document.getElementById('pinBtn');
+  const pin = input.value.trim();
+  if (!pin) { message.textContent = 'Enter your PIN.'; input.focus(); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  message.textContent = '';
+  fetch(API_URL, {method: 'POST', body: JSON.stringify({action: 'unlock', pin})})
+    .then(res => res.json())
+    .then(out => {
+      if (!out || !out.ok) throw new Error((out && out.error) || 'Unknown server error');
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify({editor: out.data.editor, token: out.data.token})); } catch (e) {}
+      location.href = './index.html';
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.textContent = 'Unlock';
+      input.value = '';
+      input.focus();
+      message.textContent = err.message;
+    });
+}
+
+function escapeHtml(str){
+  return String(str || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+
+function render(board){
+  const people = {};
+  board.people.forEach(p => { people[p.id] = p; });
+  const isShown = id => people[id] && people[id].visible;
+
+  const jobs = board.jobs
+    .filter(j => j.onBoard)
+    .sort((a, b) => a.jobNo.localeCompare(b.jobNo, undefined, {numeric: true}));
+
+  const jobHtml = jobs.map(job => {
+    const onJob = board.assignments.filter(a => a.jobNo === job.jobNo && isShown(a.nodeId));
+    const lead = onJob.find(a => a.role === 'Lead');
+    const crew = onJob.filter(a => a.role === 'Crew')
+      .map(a => people[a.nodeId])
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return `<div class="job">
+      <div class="job-head">
+        <div class="job-no">${escapeHtml(job.jobNo)}</div>
+        ${job.customer ? `<div class="job-customer">${escapeHtml(job.customer)}</div>` : ''}
+        ${job.location ? `<div class="job-loc">${escapeHtml(job.location)}</div>` : ''}
+      </div>
+      <div class="lead">
+        <div class="label">Lead</div>
+        ${lead
+          ? `<div class="name">${escapeHtml(people[lead.nodeId].name)}</div><div class="person-title">${escapeHtml(people[lead.nodeId].title)}</div>`
+          : '<div class="none">Not set</div>'}
+      </div>
+      ${crew.length ? `<div class="crew">
+        <div class="label">Crew</div>
+        <ul>${crew.map(p => `<li>${escapeHtml(p.name)}<span class="person-title">${escapeHtml(p.title)}</span></li>`).join('')}</ul>
+      </div>` : ''}
+      ${job.notes ? `<div class="notes">${escapeHtml(job.notes)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  const assigned = new Set(board.assignments.map(a => a.nodeId));
+  const available = board.people
+    .filter(p => p.visible && !assigned.has(p.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  document.getElementById('chart').innerHTML = jobs.length
+    ? `<div class="root-wrap">
+         <div class="root">Field Operations<small>${jobs.length} active job${jobs.length === 1 ? '' : 's'}</small></div>
+         <div class="stem"></div>
+       </div>
+       <div class="jobs">${jobHtml}</div>
+       ${available.length ? `<div class="available">
+         <h3>Available / Unassigned (${available.length})</h3>
+         <div class="chips">${available.map(p => `<span class="chip">${escapeHtml(p.name)}</span>`).join('')}</div>
+       </div>` : ''}`
+    : '<div class="message">No active jobs.</div>';
+
+  const now = new Date();
+  let meta = 'As of ' + now.toLocaleDateString([], {month: 'short', day: 'numeric', year: 'numeric'}) +
+    ' ' + now.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+  if (board.lastSave && board.lastSave.savedAt) {
+    const saved = new Date(board.lastSave.savedAt);
+    if (!isNaN(saved)) meta += ' · Last updated ' + saved.toLocaleDateString() + ' by ' + board.lastSave.savedBy;
+  }
+  document.getElementById('meta').textContent = meta;
+}
+
+setEditIcon();
+
+fetch(API_URL + '?action=getBoard')
+  .then(res => res.json())
+  .then(out => {
+    if (!out || !out.ok) throw new Error((out && out.error) || 'Unknown server error');
+    render(out.data);
+  })
+  .catch(err => {
+    document.getElementById('chart').innerHTML = '<div class="message">Couldn’t load crew assignments. Refresh to try again.</div>';
+    document.getElementById('meta').textContent = err.message;
+  });
+</script>
+</body>
+</html>
