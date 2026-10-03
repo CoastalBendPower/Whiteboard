@@ -27,6 +27,11 @@
 
     .edit-btn{position:absolute;top:18px;right:18px;width:46px;height:46px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(16,50,90,.25)}
     .edit-btn{border:0;cursor:pointer}
+    .corner{position:absolute;top:18px;right:18px;display:flex;gap:10px;align-items:center}
+    .corner .edit-btn{position:static}
+    .ph-home{display:block;width:46px;height:46px;border-radius:50%;overflow:hidden;box-shadow:0 4px 12px rgba(16,50,90,.25)}
+    .ph-home img{width:100%;height:100%;object-fit:cover;display:block}
+    .job-pill{font-size:10px;font-weight:800;color:#7a5200;background:#fff4d6;border:1px solid #f5b100;border-radius:999px;padding:1px 6px;margin-left:5px;vertical-align:middle;white-space:nowrap}
     .edit-btn svg{width:22px;height:22px;fill:white}
 
     .modal-backdrop{position:fixed;inset:0;background:rgba(9,42,79,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}
@@ -75,7 +80,8 @@
 
     @media(max-width:600px){
       .sheet{margin:0;border-radius:0;border:0;padding:16px}
-      .top{padding-right:52px}
+      .top{padding-right:112px}
+      .corner{top:14px;right:14px}
       .logo{width:48px;height:48px}
       .top h1{font-size:18px}
       .edit-btn{top:14px;right:14px}
@@ -85,7 +91,7 @@
     @media print{
       body{background:white}
       .sheet{margin:0;max-width:none;border:0;box-shadow:none;padding:0}
-      .edit-btn,.footer{display:none}
+      .corner,.footer{display:none}
       .job,.job-head,.root,.lead,.notes{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     }
   </style>
@@ -101,11 +107,14 @@
       </div>
     </div>
 
-    <button class="edit-btn" id="editBtn" type="button" onclick="openEditor()" title="Editors: unlock to edit" aria-label="Unlock to edit"></button>
+    <div class="corner">
+      <a class="ph-home" href="https://coastalbendpower.github.io/PowerHub/" title="Back to PowerHub" aria-label="Back to PowerHub"><img src="https://drive.google.com/thumbnail?id=1Lnf2-p068Z0K-5AScCj2qxQis0TEzY_W&sz=w200" alt="PowerHub"></a>
+      <button class="edit-btn" id="editBtn" type="button" onclick="openEditor()" title="Editors: unlock to edit" aria-label="Unlock to edit"></button>
+    </div>
 
     <div id="chart"><div class="message">Loading crew assignments…</div></div>
   </div>
-  <div class="footer">CBPS Crew Assignments — v0.8.4 · View only</div>
+  <div class="footer">CBPS Crew Assignments — v0.8.5 · View only</div>
 
   <div class="modal-backdrop" id="pinModal">
     <div class="modal-card">
@@ -189,6 +198,9 @@ function render(board){
   const people = {};
   board.people.forEach(p => { people[p.id] = p; });
   const isShown = id => people[id] && people[id].visible;
+  const jobsFor = {};
+  board.assignments.forEach(a => { (jobsFor[a.nodeId] = jobsFor[a.nodeId] || new Set()).add(a.jobNo); });
+  const pill = id => jobsFor[id] && jobsFor[id].size > 1 ? `<span class="job-pill">${jobsFor[id].size} jobs</span>` : '';
 
   const jobs = board.jobs
     .filter(j => j.onBoard)
@@ -210,12 +222,12 @@ function render(board){
       <div class="lead">
         <div class="label">Lead</div>
         ${lead
-          ? `<div class="name">${escapeHtml(people[lead.nodeId].name)}</div><div class="person-title">${escapeHtml(people[lead.nodeId].title)}</div>`
+          ? `<div class="name">${escapeHtml(people[lead.nodeId].name)}${pill(lead.nodeId)}</div><div class="person-title">${escapeHtml(people[lead.nodeId].title)}</div>`
           : '<div class="none">Not set</div>'}
       </div>
       ${crew.length ? `<div class="crew">
         <div class="label">Crew</div>
-        <ul>${crew.map(p => `<li>${escapeHtml(p.name)}<span class="person-title">${escapeHtml(p.title)}</span></li>`).join('')}</ul>
+        <ul>${crew.map(p => `<li>${escapeHtml(p.name)}${pill(p.id)}<span class="person-title">${escapeHtml(p.title)}</span></li>`).join('')}</ul>
       </div>` : ''}
       ${job.notes ? `<div class="notes">${escapeHtml(job.notes)}</div>` : ''}
     </div>`;
