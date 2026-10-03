@@ -58,12 +58,16 @@
 
     .jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
     .job{background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px}
-    .job-no{font-weight:900;color:var(--navy);font-size:17px}
-    .job-customer{font-weight:700}
-    .job-meta{font-size:12px;color:var(--muted)}
+    .job-title{font-weight:700;line-height:1.35}
+    .job-title b{font-weight:900;color:var(--navy);font-size:17px}
     .job-notes{font-size:12px;color:#664900;background:var(--warn);border-radius:8px;padding:6px 8px}
     .slot-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
     .empty-board{color:var(--muted);text-align:center;padding:40px 10px;font-weight:700}
+    .add-job-card{border:2px dashed var(--teal);background:white;color:var(--navy);border-radius:16px;font-size:16px;font-weight:800;min-height:120px;width:100%}
+    .add-job-card.big{min-height:160px;font-size:20px;grid-column:1/-1}
+    .admin-group{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+    .admin-group summary{cursor:pointer;font-weight:800;color:var(--muted);font-size:13px;padding:6px 0}
+    .admin-group .employee{opacity:.75}
 
     .dropzone{min-height:56px;border:2px dashed #b8cadc;border-radius:12px;padding:6px;background:#fbfdff}
     .dropzone.lead-zone{border-color:#9fb6cf;background:white}
@@ -84,6 +88,7 @@
     .modal-card h3{margin:0 0 8px;color:var(--navy)}
     .modal-card p{margin:0 0 12px;color:var(--muted);font-size:14px}
     .modal-card label.field{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.3px}
+    textarea.modal-input{min-height:110px;resize:vertical;font-family:inherit}
     .modal-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;color:var(--text);background:white}
     .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
     .modal-message{margin-top:10px;color:var(--danger);font-size:13px;font-weight:700}
@@ -156,18 +161,15 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.7.2
+    CBPS Whiteboard — v0.8.0
   </footer>
 
   <!-- Unlock -->
   <div id="unlockModal" class="modal-backdrop" style="display:none;">
     <div class="modal-card">
       <h3>Unlock editing</h3>
-      <p>Pick your name and enter your PIN.</p>
-      <select id="modalEditor" class="modal-input" aria-label="Editor name">
-        <option value="">Loading editors…</option>
-      </select>
-      <input id="modalPin" class="modal-input" style="margin-top:10px" type="password" inputmode="numeric"
+      <p>Enter your PIN.</p>
+      <input id="modalPin" class="modal-input" type="password" inputmode="numeric"
         autocomplete="off" placeholder="PIN" aria-label="Enter PIN"
         onkeydown="if(event.key==='Enter') confirmUnlock()">
       <div class="modal-actions">
@@ -202,7 +204,7 @@
       <label class="field" for="jobLead">Crew lead</label>
       <select id="jobLead" class="modal-input" onchange="renderCrewChecklist()"></select>
 
-      <label class="field">Crew (optional — leave empty for a solo job)</label>
+      <label class="field">Crew</label>
       <div class="check-list" id="jobCrew"></div>
 
       <div class="modal-actions">
@@ -210,6 +212,19 @@
         <button class="primary" id="jobSaveBtn" onclick="confirmJobModal()">Save Job</button>
       </div>
       <div id="jobMessage" class="modal-message"></div>
+    </div>
+  </div>
+
+  <!-- Mark complete -->
+  <div id="completeModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <h3 id="completeTitle">Job Notes</h3>
+      <textarea id="completeNotes" class="modal-input" aria-label="Completion notes"></textarea>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeModal('completeModal')">Cancel</button>
+        <button class="primary" id="completeBtn" onclick="confirmComplete()">Mark Complete</button>
+      </div>
+      <div id="completeMessage" class="modal-message"></div>
     </div>
   </div>
 
@@ -228,14 +243,21 @@
 
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbw22j6Z8pW_uPzsElHs3qTUCyeqnDGhYwegQMIGLFxLL_8UDJh2wzzyIsYx5muuIi7G/exec';
-const LAST_EDITOR_KEY = 'cbpsOrgChartLastEditor';
+const SESSION_MINUTES = 15;
 
 let BOARD = {people: [], jobs: [], assignments: [], lastSave: null};
 // Held in memory only; cleared on Lock or page refresh. The backend re-checks the PIN on every change.
 let EDITOR = null;
 let PIN = null;
+let editMode = false;
+let sessionUntil = 0;     // after Save, Edit reopens without a PIN until this time
+let busy = false;         // a popup save is running; drags wait
+let pending = 0;          // queued saves not finished yet
+let editCounter = 0;      // bumps on every edit so a stale background refresh is ignored
+let saveQueue = Promise.resolve();
 let dragId = null;
-let busy = false;
+let dragging = false;
+let adminOpen = false;
 
 /* ---------- API ---------- */
 
@@ -252,34 +274,57 @@ function callApi(action, body){
     });
 }
 
-// Board edits: sends editor + PIN, replaces the board with the server's copy.
-function editApi(action, body){
-  busy = true;
+// Board edits run one at a time in order, so you can keep working while earlier ones save.
+function queueEdit(action, body){
+  pending++;
+  editCounter++;
   setStatus('Saving…');
-  return callApi(action, Object.assign({editor: EDITOR, pin: PIN}, body))
-    .then(board => {
-      busy = false;
-      BOARD = board;
-      render();
-      setStatus(formatLastSaveStatus(BOARD.lastSave) || 'Saved');
-      return board;
+  const run = saveQueue.then(() => callApi(action, Object.assign({pin: PIN}, body)));
+  saveQueue = run.catch(() => {});
+
+  return run
+    .then(data => {
+      if (data && data.people) {
+        BOARD = data;
+        render();
+      } else if (data && data.lastSave) {
+        BOARD.lastSave = data.lastSave;
+      }
+      return data;
     })
     .catch(err => {
-      busy = false;
       if (/PIN|Too many/.test(err.message)) lockEditing();
       setStatus('Save failed: ' + err.message);
-      reloadData(true);
       throw err;
+    })
+    .finally(() => {
+      pending--;
+      if (pending === 0) {
+        if (!/^Save failed/.test(currentStatus())) setStatus(formatLastSaveStatus(BOARD.lastSave) || 'Saved');
+        quietRefresh();
+      }
     });
 }
 
-function reloadData(keepStatus){
-  if (!keepStatus) setStatus('Loading board…');
+// Pulls the server's board after saves finish (picks up the other editor's changes) unless you've moved on.
+function quietRefresh(){
+  const stamp = editCounter;
+  callApi('getBoard')
+    .then(board => {
+      if (stamp !== editCounter || pending || busy || dragging) return;
+      BOARD = board;
+      render();
+    })
+    .catch(() => {});
+}
+
+function reloadData(){
+  setStatus('Loading board…');
   return callApi('getBoard')
     .then(board => {
       BOARD = board;
       render();
-      if (!keepStatus) setStatus(formatLastSaveStatus(BOARD.lastSave) || 'No saved updates logged yet');
+      setStatus(formatLastSaveStatus(BOARD.lastSave) || 'No saved updates logged yet');
     })
     .catch(err => {
       render();
@@ -288,6 +333,8 @@ function reloadData(keepStatus){
 }
 
 /* ---------- Render ---------- */
+
+function isEditing(){ return !!(EDITOR && editMode); }
 
 function peopleById(){
   const map = {};
@@ -306,90 +353,108 @@ function jobsOnBoard(){
 }
 
 function render(){
-  document.body.classList.toggle('editing', !!EDITOR);
+  const editing = isEditing();
+  document.body.classList.toggle('editing', editing);
   renderToolbar();
 
   const people = peopleById();
   const assigned = assignmentByPerson();
-  const visible = BOARD.people.filter(p => p.visible);
-
-  const unassigned = visible
-    .filter(p => !assigned[p.id])
+  const unassigned = BOARD.people
+    .filter(p => p.visible && !assigned[p.id])
     .sort((a, b) => a.name.localeCompare(b.name));
+  const field = unassigned.filter(p => !p.admin);
+  const admin = unassigned.filter(p => p.admin);
+
   document.getElementById('unassignedPool').innerHTML =
-    unassigned.map(p => employeeMarkup(p, false)).join('') ||
-    '<div class="placeholder">Everyone is placed</div>';
-  document.getElementById('unassignedCount').textContent = '(' + unassigned.length + ')';
+    (field.map(p => employeeMarkup(p, false)).join('') || '<div class="placeholder">Everyone is placed</div>') +
+    (admin.length
+      ? `<details class="admin-group" ${adminOpen ? 'open' : ''}>
+           <summary>Admin (${admin.length})</summary>
+           ${admin.map(p => employeeMarkup(p, false)).join('')}
+         </details>`
+      : '');
+  document.getElementById('unassignedCount').textContent = '(' + field.length + ')';
+  const details = document.querySelector('.admin-group');
+  if (details) details.addEventListener('toggle', () => { adminOpen = details.open; });
 
   const jobs = jobsOnBoard();
   document.getElementById('jobCount').textContent = '(' + jobs.length + ')';
   document.getElementById('jobs').innerHTML = jobs.length
-    ? jobs.map(job => jobMarkup(job, people)).join('')
-    : '<div class="empty-board">No jobs on the board yet.' + (EDITOR ? ' Tap “+ Add Job”.' : '') + '</div>';
+    ? jobs.map(job => jobMarkup(job, people, editing)).join('') +
+      (editing ? '<button class="add-job-card" onclick="openJobModal()">+ Add Job</button>' : '')
+    : (editing
+        ? '<button class="add-job-card big" onclick="openJobModal()">+ Add Job</button>'
+        : '<div class="empty-board">No active jobs.</div>');
 
   wireDragDrop();
 }
 
-function jobMarkup(job, people){
+function jobMarkup(job, people, editing){
   const onJob = BOARD.assignments.filter(a => a.jobNo === job.jobNo && people[a.nodeId] && people[a.nodeId].visible);
   const lead = onJob.find(a => a.role === 'Lead');
   const crew = onJob.filter(a => a.role === 'Crew')
     .map(a => people[a.nodeId])
     .sort((a, b) => a.name.localeCompare(b.name));
   const jobAttr = escapeHtml(job.jobNo);
+  const title = [job.customer, job.location].filter(Boolean).map(escapeHtml).join(' — ');
+
+  const crewZone = crew.length || editing
+    ? `<div>
+        <div class="slot-label">Crew</div>
+        <div class="dropzone" data-job="${jobAttr}" data-role="Crew">
+          ${crew.map(p => employeeMarkup(p, false)).join('') || '<div class="placeholder">+ Add crew</div>'}
+        </div>
+      </div>`
+    : '';
 
   return `<div class="job" data-job="${jobAttr}">
-    <div>
-      <div class="job-no">${escapeHtml(job.jobNo)}</div>
-      <div class="job-customer">${escapeHtml(job.customer)}</div>
-      ${job.location ? `<div class="job-meta">${escapeHtml(job.location)}</div>` : ''}
-    </div>
+    <div class="job-title"><b>${jobAttr}</b>${title ? ' — ' + title : ''}</div>
     ${job.notes ? `<div class="job-notes">${escapeHtml(job.notes)}</div>` : ''}
     <div>
       <div class="slot-label">Lead</div>
       <div class="dropzone lead-zone" data-job="${jobAttr}" data-role="Lead">
-        ${lead ? employeeMarkup(people[lead.nodeId], true) : `<div class="placeholder">${EDITOR ? 'Tap to set lead' : 'No lead'}</div>`}
+        ${lead ? employeeMarkup(people[lead.nodeId], true) : '<div class="placeholder">Select Lead</div>'}
       </div>
     </div>
-    <div>
-      <div class="slot-label">Crew</div>
-      <div class="dropzone" data-job="${jobAttr}" data-role="Crew">
-        ${crew.map(p => employeeMarkup(p, false)).join('') || `<div class="placeholder">${EDITOR ? 'Solo — tap to add crew' : 'Solo / no crew'}</div>`}
-      </div>
-    </div>
-    ${EDITOR ? `<div><button class="link-btn" data-remove="${jobAttr}">Remove from board</button></div>` : ''}
+    ${crewZone}
+    ${editing ? `<div><button class="link-btn" data-complete="${jobAttr}">Mark Complete</button></div>` : ''}
   </div>`;
 }
 
 function employeeMarkup(p, isLead){
-  return `<div class="employee${isLead ? ' lead' : ''}" draggable="${EDITOR ? 'true' : 'false'}" data-id="${escapeHtml(p.id)}">
+  return `<div class="employee${isLead ? ' lead' : ''}" draggable="${isEditing() ? 'true' : 'false'}" data-id="${escapeHtml(p.id)}">
     <strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.title || '')}</span>
   </div>`;
 }
 
 function renderToolbar(){
   const bar = document.getElementById('toolbar');
-  const status = document.getElementById('status');
-  const statusText = status ? status.textContent : 'Loading board…';
+  const statusText = currentStatus() || 'Loading board…';
+  const sessionAlive = EDITOR && Date.now() < sessionUntil;
 
-  bar.innerHTML = EDITOR
-    ? `<span class="who">Editing as ${escapeHtml(EDITOR)}</span>
-       <button class="primary" onclick="openJobModal()">+ Add Job</button>
-       <button class="secondary" onclick="openSettings()">Settings</button>
-       <button class="secondary" onclick="lockEditing()">Lock</button>
-       <span class="status" id="status"></span>`
-    : `<button class="primary" onclick="openUnlock()">🔒 Unlock to edit</button>
-       <span class="status" id="status"></span>`;
+  if (isEditing()) {
+    bar.innerHTML = `<span class="who">Editing as ${escapeHtml(EDITOR)}</span>
+      <button class="primary" onclick="saveAndClose()">Save</button>
+      <button class="secondary" onclick="openSettings()">Settings</button>
+      <button class="secondary" onclick="lockEditing()">Lock</button>`;
+  } else if (sessionAlive) {
+    bar.innerHTML = `<button class="primary" onclick="resumeEditing()">✏️ Edit</button>
+      <button class="secondary" onclick="lockEditing()">Lock</button>`;
+  } else {
+    bar.innerHTML = `<button class="primary" onclick="openUnlock()">🔒 Unlock to edit</button>`;
+  }
+  bar.insertAdjacentHTML('beforeend', '<span class="status" id="status"></span>');
   document.getElementById('status').textContent = statusText;
 }
 
-/* ---------- Drag / drop ---------- */
+/* ---------- Drag / drop / tap ---------- */
 
 function wireDragDrop(){
-  document.querySelectorAll('[data-remove]').forEach(btn => {
-    btn.addEventListener('click', () => removeJob(btn.dataset.remove));
+  if (!isEditing()) return;
+
+  document.querySelectorAll('[data-complete]').forEach(btn => {
+    btn.addEventListener('click', () => openComplete(btn.dataset.complete));
   });
-  if (!EDITOR) return;
 
   // Tap a job's Lead or Crew area to edit the team with checkboxes (main way on phones).
   document.querySelectorAll('.job .dropzone').forEach(zone => {
@@ -399,9 +464,11 @@ function wireDragDrop(){
   document.querySelectorAll('.employee').forEach(card => {
     card.addEventListener('dragstart', e => {
       dragId = card.dataset.id;
+      dragging = true;
       e.dataTransfer.setData('text/plain', dragId);
     });
   });
+
   // Whole job card / whole Unassigned panel accept drops. Over the Lead box = Lead, anywhere else on a card = Crew.
   document.querySelectorAll('.job, .unassigned-panel').forEach(target => {
     if (target.dataset.wired) return; // Unassigned panel isn't re-rendered; wire it once.
@@ -413,7 +480,7 @@ function wireDragDrop(){
     const clearOver = () => target.querySelectorAll('.dropzone.over').forEach(z => z.classList.remove('over'));
 
     target.addEventListener('dragover', e => {
-      if (!EDITOR) return;
+      if (!isEditing()) return;
       e.preventDefault();
       const zone = zoneFor(e);
       target.querySelectorAll('.dropzone.over').forEach(z => { if (z !== zone) z.classList.remove('over'); });
@@ -423,7 +490,7 @@ function wireDragDrop(){
       if (!target.contains(e.relatedTarget)) clearOver();
     });
     target.addEventListener('drop', e => {
-      if (!EDITOR) return;
+      if (!isEditing()) return;
       e.preventDefault();
       const zone = zoneFor(e);
       clearOver();
@@ -433,12 +500,12 @@ function wireDragDrop(){
 }
 
 function moveEmployee(nodeId, jobNo, role){
-  if (!EDITOR || busy || !nodeId) return;
+  if (!isEditing() || busy || !nodeId) return;
   const current = assignmentByPerson()[nodeId];
   if (current && current.jobNo === jobNo && current.role === role) return;
   if (!current && !jobNo) return;
 
-  // Show the move right away; the server's copy replaces it when the save returns.
+  // Show the move right away; it saves in the background.
   BOARD.assignments = BOARD.assignments.filter(a => a.nodeId !== nodeId);
   if (jobNo) {
     if (role === 'Lead') {
@@ -448,64 +515,50 @@ function moveEmployee(nodeId, jobNo, role){
   }
   render();
 
-  editApi('moveAssignment', {nodeId, jobNo, role}).catch(() => {});
+  // On failure, put the board back to the server's copy but keep the error message showing.
+  queueEdit('moveAssignment', {nodeId, jobNo, role})
+    .catch(() => callApi('getBoard').then(board => { BOARD = board; render(); }).catch(() => {}));
 }
 
-function removeJob(jobNo){
-  if (!EDITOR || busy) return;
-  BOARD.assignments = BOARD.assignments.filter(a => a.jobNo !== jobNo);
-  BOARD.jobs.forEach(j => { if (j.jobNo === jobNo) j.onBoard = false; });
-  render();
-  editApi('removeJob', {jobNo}).catch(() => {});
+// Popup saves: wait for the result, block drags meanwhile.
+function popupEdit(action, body, btnId, btnText, messageId, modalId){
+  const message = document.getElementById(messageId);
+  message.textContent = '';
+  setButtonBusy(btnId, true, 'Saving…');
+  busy = true;
+  return queueEdit(action, body)
+    .then(() => closeModal(modalId))
+    .catch(err => { message.textContent = err.message; })
+    .finally(() => {
+      busy = false;
+      setButtonBusy(btnId, false, btnText);
+    });
 }
 
-/* ---------- Unlock ---------- */
-
-function loadEditors(){
-  const select = document.getElementById('modalEditor');
-  callApi('getEditors')
-    .then(names => fillEditorOptions(names || []))
-    .catch(() => { select.innerHTML = '<option value="">Could not load editors</option>'; });
-}
-
-function fillEditorOptions(names){
-  const select = document.getElementById('modalEditor');
-  select.innerHTML = '';
-  select.appendChild(new Option(names.length ? 'Select your name' : 'No editors set up yet', ''));
-  names.forEach(name => select.appendChild(new Option(name, name)));
-  let last = '';
-  try { last = localStorage.getItem(LAST_EDITOR_KEY) || ''; } catch (e) {}
-  if (last && names.includes(last)) select.value = last;
-}
+/* ---------- Unlock / Save / Lock ---------- */
 
 function openUnlock(){
-  const select = document.getElementById('modalEditor');
   const pin = document.getElementById('modalPin');
   document.getElementById('unlockMessage').textContent = '';
   pin.value = '';
   setButtonBusy('unlockBtn', false, 'Unlock');
   openModal('unlockModal');
-  setTimeout(() => { if (!select.value) select.focus(); else pin.focus(); }, 50);
+  setTimeout(() => pin.focus(), 50);
 }
 
 function confirmUnlock(){
-  const select = document.getElementById('modalEditor');
   const pinInput = document.getElementById('modalPin');
   const message = document.getElementById('unlockMessage');
-  const editor = select.value;
   const pin = pinInput.value.trim();
-
-  if (!editor) { message.textContent = 'Select your name.'; select.focus(); return; }
   if (!pin) { message.textContent = 'Enter your PIN.'; pinInput.focus(); return; }
 
-  try { localStorage.setItem(LAST_EDITOR_KEY, editor); } catch (e) {}
   message.textContent = '';
   setButtonBusy('unlockBtn', true, 'Checking…');
-
-  callApi('unlock', {editor, pin})
+  callApi('unlock', {pin})
     .then(res => {
       EDITOR = res.editor;
       PIN = pin;
+      editMode = true;
       closeModal('unlockModal');
       render();
     })
@@ -517,21 +570,45 @@ function confirmUnlock(){
     });
 }
 
+// Save = finish pending saves and switch to view mode. Edit reopens without a PIN for a while.
+function saveAndClose(){
+  setStatus(pending ? 'Saving…' : currentStatus());
+  saveQueue.then(() => {
+    editMode = false;
+    sessionUntil = Date.now() + SESSION_MINUTES * 60 * 1000;
+    render();
+    if (!/^Save failed/.test(currentStatus())) {
+      setStatus('All changes saved ✓ ' + (formatLastSaveStatus(BOARD.lastSave) ? '· ' + formatLastSaveStatus(BOARD.lastSave) : ''));
+    }
+  });
+}
+
+function resumeEditing(){
+  if (EDITOR && Date.now() < sessionUntil) {
+    editMode = true;
+    render();
+  } else {
+    lockEditing();
+    openUnlock();
+  }
+}
+
 function lockEditing(){
   EDITOR = null;
   PIN = null;
-  closeModal('jobModal');
-  closeModal('settingsModal');
+  editMode = false;
+  sessionUntil = 0;
+  ['jobModal', 'settingsModal', 'completeModal'].forEach(closeModal);
   render();
 }
 
-/* ---------- Add job ---------- */
+/* ---------- Add job / edit crew ---------- */
 
 // No jobNo = Add Job. With jobNo = edit that job's lead and crew.
 let EDIT_JOB = null;
 
 function openJobModal(jobNo){
-  if (!EDITOR || busy) return;
+  if (!isEditing() || busy) return;
   EDIT_JOB = jobNo || null;
   const onJob = EDIT_JOB ? BOARD.assignments.filter(a => a.jobNo === EDIT_JOB) : [];
   const currentLead = onJob.find(a => a.role === 'Lead');
@@ -553,7 +630,7 @@ function openJobModal(jobNo){
 
   const lead = document.getElementById('jobLead');
   lead.innerHTML = '';
-  lead.appendChild(new Option('No lead yet', ''));
+  lead.appendChild(new Option('Select Lead', ''));
   pickerPeople().forEach(p => lead.appendChild(new Option(p.name + currentSpotLabel(p.id), p.id)));
   lead.value = currentLead ? currentLead.nodeId : '';
 
@@ -588,14 +665,7 @@ function confirmJobModal(){
   const crewIds = Array.from(document.querySelectorAll('#jobCrew input:checked')).map(i => i.value);
 
   if (EDIT_JOB) {
-    message.textContent = '';
-    setButtonBusy('jobSaveBtn', true, 'Saving…');
-    editApi('setJobTeam', {jobNo: EDIT_JOB, leadId, crewIds})
-      .then(() => closeModal('jobModal'))
-      .catch(err => {
-        setButtonBusy('jobSaveBtn', false, 'Save Job');
-        message.textContent = err.message;
-      });
+    popupEdit('setJobTeam', {jobNo: EDIT_JOB, leadId, crewIds}, 'jobSaveBtn', 'Save Job', 'jobMessage', 'jobModal');
     return;
   }
 
@@ -614,23 +684,17 @@ function confirmJobModal(){
   if (isNew && !job.jobNo) { message.textContent = 'Enter the Job #.'; return; }
   if (isNew && !job.customer) { message.textContent = 'Enter the customer.'; return; }
 
-  message.textContent = '';
-  setButtonBusy('jobSaveBtn', true, 'Saving…');
-  editApi('saveJob', {job, isNew, leadId, crewIds})
-    .then(() => closeModal('jobModal'))
-    .catch(err => {
-      setButtonBusy('jobSaveBtn', false, 'Save Job');
-      message.textContent = err.message;
-    });
+  popupEdit('saveJob', {job, isNew, leadId, crewIds}, 'jobSaveBtn', 'Save Job', 'jobMessage', 'jobModal');
 }
 
-// Picker order: on this job, then unassigned, then people on other jobs.
+// Picker order: on this job, then unassigned field, then field people on other jobs, then Admin.
 function pickerPeople(){
   const assigned = assignmentByPerson();
   const rank = p => {
     const a = assigned[p.id];
-    if (!a) return 1;
-    return EDIT_JOB && a.jobNo === EDIT_JOB ? 0 : 2;
+    let r = !a ? 1 : (EDIT_JOB && a.jobNo === EDIT_JOB ? 0 : 2);
+    if (p.admin && r !== 0) r = 3;
+    return r;
   };
   return BOARD.people
     .filter(p => p.visible)
@@ -642,10 +706,30 @@ function currentSpotLabel(nodeId){
   return a ? ' · now on ' + a.jobNo + (a.role === 'Lead' ? ' (Lead)' : '') : '';
 }
 
+/* ---------- Mark complete ---------- */
+
+let COMPLETE_JOB = null;
+
+function openComplete(jobNo){
+  if (!isEditing() || busy) return;
+  COMPLETE_JOB = jobNo;
+  document.getElementById('completeTitle').textContent = 'Job ' + jobNo + ' Notes';
+  document.getElementById('completeNotes').value = '';
+  document.getElementById('completeMessage').textContent = '';
+  setButtonBusy('completeBtn', false, 'Mark Complete');
+  openModal('completeModal');
+  setTimeout(() => document.getElementById('completeNotes').focus(), 50);
+}
+
+function confirmComplete(){
+  const notes = document.getElementById('completeNotes').value.trim();
+  popupEdit('completeJob', {jobNo: COMPLETE_JOB, notes}, 'completeBtn', 'Mark Complete', 'completeMessage', 'completeModal');
+}
+
 /* ---------- Settings ---------- */
 
 function openSettings(){
-  if (!EDITOR) return;
+  if (!isEditing()) return;
   document.getElementById('settingsMessage').textContent = '';
   renderVisibilityList();
   openModal('settingsModal');
@@ -668,15 +752,13 @@ function renderVisibilityList(){
 
 function setVisibility(box){
   const message = document.getElementById('settingsMessage');
-  const nodeId = box.dataset.person;
-  const visible = box.checked;
   message.textContent = '';
   document.querySelectorAll('#visibilityList input').forEach(i => { i.disabled = true; });
-
-  editApi('setVisibility', {nodeId, visible})
-    .then(() => renderVisibilityList())
-    .catch(err => {
-      message.textContent = err.message;
+  busy = true;
+  queueEdit('setVisibility', {nodeId: box.dataset.person, visible: box.checked})
+    .catch(err => { message.textContent = err.message; })
+    .finally(() => {
+      busy = false;
       renderVisibilityList();
     });
 }
@@ -709,6 +791,11 @@ function formatLastSaveStatus(lastSave){
   return formatSavedStatus(lastSave.savedBy, savedAt);
 }
 
+function currentStatus(){
+  const el = document.getElementById('status');
+  return el ? el.textContent : '';
+}
+
 function setStatus(msg){
   const el = document.getElementById('status');
   if (el) el.textContent = msg;
@@ -730,6 +817,7 @@ function dragScrollLoop(){
 
 function stopDragScroll(){
   dragY = null;
+  dragging = false;
   if (dragScrollFrame) cancelAnimationFrame(dragScrollFrame);
   dragScrollFrame = null;
 }
@@ -744,7 +832,6 @@ document.addEventListener('drop', stopDragScroll);
 
 render();
 reloadData();
-loadEditors();
 </script>
 </body>
 </html>
