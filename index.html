@@ -68,6 +68,7 @@
     .dropzone{min-height:56px;border:2px dashed #b8cadc;border-radius:12px;padding:6px;background:#fbfdff}
     .dropzone.lead-zone{border-color:#9fb6cf;background:white}
     .dropzone.over{border-color:var(--teal);background:#e9fbfd}
+    .editing .job .dropzone{cursor:pointer}
     .pool{min-height:160px}
     .placeholder{color:#98a2b3;font-size:12px;text-align:center;padding:12px 0}
 
@@ -106,7 +107,8 @@
       .construction-badge .small{font-size:11px}
       .toolbar{position:sticky;top:0;z-index:50;background:#eef4f9;padding:10px 12px;border-bottom:1px solid var(--line)}
       .board{grid-template-columns:1fr}
-      .unassigned-panel{position:static}
+      .unassigned-panel{position:static;order:2}
+      .jobs-panel{order:1}
       .pool{min-height:92px}
       .employee{padding:11px 10px;margin:7px 0}
       .employee strong{font-size:14px}
@@ -146,7 +148,7 @@
         <div class="dropzone pool" id="unassignedPool" data-job="" data-role=""></div>
       </aside>
 
-      <section class="panel">
+      <section class="panel jobs-panel">
         <h3>Active Jobs <span class="count" id="jobCount"></span></h3>
         <div class="jobs" id="jobs"></div>
       </section>
@@ -154,7 +156,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.7.0
+    CBPS Whiteboard — v0.7.1
   </footer>
 
   <!-- Unlock -->
@@ -179,10 +181,12 @@
   <!-- Add job -->
   <div id="jobModal" class="modal-backdrop" style="display:none;">
     <div class="modal-card">
-      <h3>Add Job to Board</h3>
+      <h3 id="jobModalTitle">Add Job to Board</h3>
 
-      <label class="field" for="jobPick">Job</label>
-      <select id="jobPick" class="modal-input" onchange="toggleNewJobFields()"></select>
+      <div id="jobPickWrap">
+        <label class="field" for="jobPick">Job</label>
+        <select id="jobPick" class="modal-input" onchange="toggleNewJobFields()"></select>
+      </div>
 
       <div id="newJobFields" style="display:none;">
         <label class="field" for="newJobNo">Job #</label>
@@ -203,7 +207,7 @@
 
       <div class="modal-actions">
         <button class="secondary" onclick="closeModal('jobModal')">Cancel</button>
-        <button class="primary" id="jobSaveBtn" onclick="confirmAddJob()">Save Job</button>
+        <button class="primary" id="jobSaveBtn" onclick="confirmJobModal()">Save Job</button>
       </div>
       <div id="jobMessage" class="modal-message"></div>
     </div>
@@ -344,13 +348,13 @@ function jobMarkup(job, people){
     <div>
       <div class="slot-label">Lead</div>
       <div class="dropzone lead-zone" data-job="${jobAttr}" data-role="Lead">
-        ${lead ? employeeMarkup(people[lead.nodeId], true) : '<div class="placeholder">No lead</div>'}
+        ${lead ? employeeMarkup(people[lead.nodeId], true) : `<div class="placeholder">${EDITOR ? 'Tap to set lead' : 'No lead'}</div>`}
       </div>
     </div>
     <div>
       <div class="slot-label">Crew</div>
       <div class="dropzone" data-job="${jobAttr}" data-role="Crew">
-        ${crew.map(p => employeeMarkup(p, false)).join('') || '<div class="placeholder">Solo / no crew</div>'}
+        ${crew.map(p => employeeMarkup(p, false)).join('') || `<div class="placeholder">${EDITOR ? 'Solo — tap to add crew' : 'Solo / no crew'}</div>`}
       </div>
     </div>
     ${EDITOR ? `<div><button class="link-btn" data-remove="${jobAttr}">Remove from board</button></div>` : ''}
@@ -370,7 +374,7 @@ function renderToolbar(){
 
   bar.innerHTML = EDITOR
     ? `<span class="who">Editing as ${escapeHtml(EDITOR)}</span>
-       <button class="primary" onclick="openAddJob()">+ Add Job</button>
+       <button class="primary" onclick="openJobModal()">+ Add Job</button>
        <button class="secondary" onclick="openSettings()">Settings</button>
        <button class="secondary" onclick="lockEditing()">Lock</button>
        <span class="status" id="status"></span>`
@@ -386,6 +390,11 @@ function wireDragDrop(){
     btn.addEventListener('click', () => removeJob(btn.dataset.remove));
   });
   if (!EDITOR) return;
+
+  // Tap a job's Lead or Crew area to edit the team with checkboxes (main way on phones).
+  document.querySelectorAll('.job .dropzone').forEach(zone => {
+    zone.addEventListener('click', () => openJobModal(zone.dataset.job));
+  });
 
   document.querySelectorAll('.employee').forEach(card => {
     card.addEventListener('dragstart', e => {
@@ -500,8 +509,18 @@ function lockEditing(){
 
 /* ---------- Add job ---------- */
 
-function openAddJob(){
-  if (!EDITOR) return;
+// No jobNo = Add Job. With jobNo = edit that job's lead and crew.
+let EDIT_JOB = null;
+
+function openJobModal(jobNo){
+  if (!EDITOR || busy) return;
+  EDIT_JOB = jobNo || null;
+  const onJob = EDIT_JOB ? BOARD.assignments.filter(a => a.jobNo === EDIT_JOB) : [];
+  const currentLead = onJob.find(a => a.role === 'Lead');
+
+  document.getElementById('jobModalTitle').textContent = EDIT_JOB ? 'Edit crew — ' + EDIT_JOB : 'Add Job to Board';
+  document.getElementById('jobPickWrap').style.display = EDIT_JOB ? 'none' : 'block';
+
   const pick = document.getElementById('jobPick');
   pick.innerHTML = '';
   pick.appendChild(new Option('Select a job…', ''));
@@ -517,9 +536,11 @@ function openAddJob(){
   const lead = document.getElementById('jobLead');
   lead.innerHTML = '';
   lead.appendChild(new Option('No lead yet', ''));
-  visiblePeopleSorted().forEach(p => lead.appendChild(new Option(p.name + currentSpotLabel(p.id), p.id)));
+  pickerPeople().forEach(p => lead.appendChild(new Option(p.name + currentSpotLabel(p.id), p.id)));
+  lead.value = currentLead ? currentLead.nodeId : '';
 
-  renderCrewChecklist();
+  document.getElementById('jobCrew').innerHTML = '';
+  renderCrewChecklist(onJob.filter(a => a.role === 'Crew').map(a => a.nodeId));
   document.getElementById('jobMessage').textContent = '';
   setButtonBusy('jobSaveBtn', false, 'Save Job');
   openModal('jobModal');
@@ -530,11 +551,11 @@ function toggleNewJobFields(){
   document.getElementById('newJobFields').style.display = isNew ? 'block' : 'none';
 }
 
-function renderCrewChecklist(){
+function renderCrewChecklist(preChecked){
   const leadId = document.getElementById('jobLead').value;
   const box = document.getElementById('jobCrew');
-  const checked = new Set(Array.from(box.querySelectorAll('input:checked')).map(i => i.value));
-  box.innerHTML = visiblePeopleSorted()
+  const checked = new Set(preChecked || Array.from(box.querySelectorAll('input:checked')).map(i => i.value));
+  box.innerHTML = pickerPeople()
     .filter(p => p.id !== leadId)
     .map(p => `<label class="check-row">
         <input type="checkbox" value="${escapeHtml(p.id)}" ${checked.has(p.id) ? 'checked' : ''}>
@@ -543,8 +564,23 @@ function renderCrewChecklist(){
     .join('');
 }
 
-function confirmAddJob(){
+function confirmJobModal(){
   const message = document.getElementById('jobMessage');
+  const leadId = document.getElementById('jobLead').value;
+  const crewIds = Array.from(document.querySelectorAll('#jobCrew input:checked')).map(i => i.value);
+
+  if (EDIT_JOB) {
+    message.textContent = '';
+    setButtonBusy('jobSaveBtn', true, 'Saving…');
+    editApi('setJobTeam', {jobNo: EDIT_JOB, leadId, crewIds})
+      .then(() => closeModal('jobModal'))
+      .catch(err => {
+        setButtonBusy('jobSaveBtn', false, 'Save Job');
+        message.textContent = err.message;
+      });
+    return;
+  }
+
   const pick = document.getElementById('jobPick').value;
   const isNew = pick === '__new__';
   const job = isNew
@@ -560,9 +596,6 @@ function confirmAddJob(){
   if (isNew && !job.jobNo) { message.textContent = 'Enter the Job #.'; return; }
   if (isNew && !job.customer) { message.textContent = 'Enter the customer.'; return; }
 
-  const leadId = document.getElementById('jobLead').value;
-  const crewIds = Array.from(document.querySelectorAll('#jobCrew input:checked')).map(i => i.value);
-
   message.textContent = '';
   setButtonBusy('jobSaveBtn', true, 'Saving…');
   editApi('saveJob', {job, isNew, leadId, crewIds})
@@ -573,8 +606,17 @@ function confirmAddJob(){
     });
 }
 
-function visiblePeopleSorted(){
-  return BOARD.people.filter(p => p.visible).sort((a, b) => a.name.localeCompare(b.name));
+// Picker order: on this job, then unassigned, then people on other jobs.
+function pickerPeople(){
+  const assigned = assignmentByPerson();
+  const rank = p => {
+    const a = assigned[p.id];
+    if (!a) return 1;
+    return EDIT_JOB && a.jobNo === EDIT_JOB ? 0 : 2;
+  };
+  return BOARD.people
+    .filter(p => p.visible)
+    .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
 }
 
 function currentSpotLabel(nodeId){
