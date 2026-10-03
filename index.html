@@ -23,7 +23,12 @@
       background:linear-gradient(135deg,var(--navy2),var(--navy));
       color:white;padding:18px 22px;border-bottom:5px solid var(--teal)
     }
-    .header-inner{display:flex;gap:16px;align-items:center;max-width:1500px;margin:auto}
+    .header-inner{display:flex;gap:16px;align-items:center;justify-content:space-between;max-width:1500px;margin:auto}
+    .header-user{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
+    .header-user .user-name{font-weight:800;font-size:16px}
+    .header-user .user-actions{display:flex;gap:8px}
+    .header-btn{background:rgba(255,255,255,.14);color:white;border:1px solid rgba(255,255,255,.35);padding:8px 12px;font-size:13px}
+    .header-btn.solid{background:white;color:var(--navy);border-color:white}
     .header-brand{display:flex;gap:16px;align-items:center}
     .construction-wrap{max-width:1500px;margin:14px auto 0;padding:0 12px;display:flex;justify-content:center}
     .construction-badge{
@@ -40,7 +45,6 @@
     .sub{opacity:.9;margin-top:4px}
 
     .toolbar{max-width:1500px;margin:14px auto;padding:0 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .toolbar .who{font-weight:800;color:var(--navy)}
     .status{color:var(--muted);font-size:13px;flex-basis:100%}
     button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;font-size:14px}
     button:disabled{opacity:.55;cursor:default}
@@ -65,9 +69,15 @@
     .empty-board{color:var(--muted);text-align:center;padding:40px 10px;font-weight:700}
     .add-job-card{border:2px dashed var(--teal);background:white;color:var(--navy);border-radius:16px;font-size:16px;font-weight:800;min-height:120px;width:100%}
     .add-job-card.big{min-height:160px;font-size:20px;grid-column:1/-1}
-    .admin-group{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
-    .admin-group summary{cursor:pointer;font-weight:800;color:var(--muted);font-size:13px;padding:6px 0}
-    .admin-group .employee{opacity:.75}
+    .admin-group{border-top:1px solid var(--line)}
+    .admin-group summary{cursor:pointer;font-weight:800;color:var(--muted);font-size:13px;padding:10px 0}
+    .settings-card{width:min(640px,100%)}
+    .settings-tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:4px 0 12px;flex-wrap:wrap}
+    .settings-tab{background:none;border:0;border-bottom:3px solid transparent;border-radius:0;color:var(--muted);padding:10px 8px}
+    .settings-tab.active{color:var(--navy);border-bottom-color:var(--teal)}
+    .closed-row{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef2f6;font-size:14px}
+    .closed-row:last-child{border-bottom:0}
+    .closed-row small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 
     .dropzone{min-height:56px;border:2px dashed #b8cadc;border-radius:12px;padding:6px;background:#fbfdff}
     .dropzone.lead-zone{border-color:#9fb6cf;background:white}
@@ -104,6 +114,8 @@
       header{padding:15px 16px}
       .header-inner{align-items:center;gap:12px}
       .logo{width:62px;height:62px}
+      .header-brand .sub{display:none}
+      .header-user .user-name{font-size:14px}
       h1{font-size:23px;line-height:1.12}
       .sub{font-size:13px;line-height:1.3}
       .construction-wrap{margin-top:10px}
@@ -131,6 +143,7 @@
           <div class="sub">Crew Whiteboard — who is on which job</div>
         </div>
       </div>
+      <div class="header-user" id="headerUser"></div>
     </div>
   </header>
 
@@ -161,20 +174,20 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.8.0
+    CBPS Whiteboard — v0.8.1
   </footer>
 
   <!-- Unlock -->
   <div id="unlockModal" class="modal-backdrop" style="display:none;">
     <div class="modal-card">
-      <h3>Unlock editing</h3>
+      <h3>Log in</h3>
       <p>Enter your PIN.</p>
       <input id="modalPin" class="modal-input" type="password" inputmode="numeric"
         autocomplete="off" placeholder="PIN" aria-label="Enter PIN"
         onkeydown="if(event.key==='Enter') confirmUnlock()">
       <div class="modal-actions">
         <button class="secondary" onclick="closeModal('unlockModal')">Cancel</button>
-        <button class="primary" id="unlockBtn" onclick="confirmUnlock()">Unlock</button>
+        <button class="primary" id="unlockBtn" onclick="confirmUnlock()">Log in</button>
       </div>
       <div id="unlockMessage" class="modal-message"></div>
     </div>
@@ -230,10 +243,23 @@
 
   <!-- Settings -->
   <div id="settingsModal" class="modal-backdrop" style="display:none;">
-    <div class="modal-card">
-      <h3>Settings — Who shows on the board</h3>
-      <p>Unticked people are hidden from the board. They stay in the data and history.</p>
-      <div class="check-list" id="visibilityList"></div>
+    <div class="modal-card settings-card">
+      <h3>Settings</h3>
+      <div class="settings-tabs" id="settingsTabs">
+        <button class="settings-tab" data-section="employees" onclick="showSettings('employees')">Visible Employees</button>
+        <button class="settings-tab" data-section="closed" onclick="showSettings('closed')">Closed Jobs</button>
+      </div>
+
+      <div class="settings-section" data-section="employees">
+        <p>Unticked people are hidden from the board. They stay in the data and history.</p>
+        <div class="check-list" id="visibilityList"></div>
+      </div>
+
+      <div class="settings-section" data-section="closed">
+        <p>Reopen puts a job back on the board with no crew.</p>
+        <div class="check-list" id="closedJobsList"></div>
+      </div>
+
       <div class="modal-actions">
         <button class="primary" onclick="closeModal('settingsModal')">Done</button>
       </div>
@@ -243,14 +269,13 @@
 
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbw22j6Z8pW_uPzsElHs3qTUCyeqnDGhYwegQMIGLFxLL_8UDJh2wzzyIsYx5muuIi7G/exec';
-const SESSION_MINUTES = 15;
+const SESSION_KEY = 'cbpsWhiteboardSession';
 
-let BOARD = {people: [], jobs: [], assignments: [], lastSave: null};
-// Held in memory only; cleared on Lock or page refresh. The backend re-checks the PIN on every change.
+let BOARD = {people: [], jobs: [], closedJobs: [], assignments: [], lastSave: null};
+// Device pass from the backend (not the PIN). Kept in this browser until Log out or it expires (30 days).
+// The backend re-checks it on every change and stops it if the editor is unticked.
 let EDITOR = null;
-let PIN = null;
-let editMode = false;
-let sessionUntil = 0;     // after Save, Edit reopens without a PIN until this time
+let TOKEN = null;
 let busy = false;         // a popup save is running; drags wait
 let pending = 0;          // queued saves not finished yet
 let editCounter = 0;      // bumps on every edit so a stale background refresh is ignored
@@ -258,6 +283,7 @@ let saveQueue = Promise.resolve();
 let dragId = null;
 let dragging = false;
 let adminOpen = false;
+let settingsSection = 'employees';
 
 /* ---------- API ---------- */
 
@@ -279,7 +305,8 @@ function queueEdit(action, body){
   pending++;
   editCounter++;
   setStatus('Saving…');
-  const run = saveQueue.then(() => callApi(action, Object.assign({pin: PIN}, body)));
+  updateSaveButton();
+  const run = saveQueue.then(() => callApi(action, Object.assign({token: TOKEN}, body)));
   saveQueue = run.catch(() => {});
 
   return run
@@ -293,12 +320,13 @@ function queueEdit(action, body){
       return data;
     })
     .catch(err => {
-      if (/PIN|Too many/.test(err.message)) lockEditing();
+      if (/Session expired|PIN|Too many/.test(err.message)) logout();
       setStatus('Save failed: ' + err.message);
       throw err;
     })
     .finally(() => {
       pending--;
+      updateSaveButton();
       if (pending === 0) {
         if (!/^Save failed/.test(currentStatus())) setStatus(formatLastSaveStatus(BOARD.lastSave) || 'Saved');
         quietRefresh();
@@ -334,7 +362,7 @@ function reloadData(){
 
 /* ---------- Render ---------- */
 
-function isEditing(){ return !!(EDITOR && editMode); }
+function isEditing(){ return !!(EDITOR && TOKEN); }
 
 function peopleById(){
   const map = {};
@@ -362,20 +390,9 @@ function render(){
   const unassigned = BOARD.people
     .filter(p => p.visible && !assigned[p.id])
     .sort((a, b) => a.name.localeCompare(b.name));
-  const field = unassigned.filter(p => !p.admin);
-  const admin = unassigned.filter(p => p.admin);
-
   document.getElementById('unassignedPool').innerHTML =
-    (field.map(p => employeeMarkup(p, false)).join('') || '<div class="placeholder">Everyone is placed</div>') +
-    (admin.length
-      ? `<details class="admin-group" ${adminOpen ? 'open' : ''}>
-           <summary>Admin (${admin.length})</summary>
-           ${admin.map(p => employeeMarkup(p, false)).join('')}
-         </details>`
-      : '');
-  document.getElementById('unassignedCount').textContent = '(' + field.length + ')';
-  const details = document.querySelector('.admin-group');
-  if (details) details.addEventListener('toggle', () => { adminOpen = details.open; });
+    unassigned.map(p => employeeMarkup(p, false)).join('') || '<div class="placeholder">Everyone is placed</div>';
+  document.getElementById('unassignedCount').textContent = '(' + unassigned.length + ')';
 
   const jobs = jobsOnBoard();
   document.getElementById('jobCount').textContent = '(' + jobs.length + ')';
@@ -430,21 +447,18 @@ function employeeMarkup(p, isLead){
 function renderToolbar(){
   const bar = document.getElementById('toolbar');
   const statusText = currentStatus() || 'Loading board…';
-  const sessionAlive = EDITOR && Date.now() < sessionUntil;
-
-  if (isEditing()) {
-    bar.innerHTML = `<span class="who">Editing as ${escapeHtml(EDITOR)}</span>
-      <button class="primary" onclick="saveAndClose()">Save</button>
-      <button class="secondary" onclick="openSettings()">Settings</button>
-      <button class="secondary" onclick="lockEditing()">Lock</button>`;
-  } else if (sessionAlive) {
-    bar.innerHTML = `<button class="primary" onclick="resumeEditing()">✏️ Edit</button>
-      <button class="secondary" onclick="lockEditing()">Lock</button>`;
-  } else {
-    bar.innerHTML = `<button class="primary" onclick="openUnlock()">🔒 Unlock to edit</button>`;
-  }
+  bar.innerHTML = isEditing() ? '<button class="primary" id="saveBtn" onclick="saveAll()">Save</button>' : '';
   bar.insertAdjacentHTML('beforeend', '<span class="status" id="status"></span>');
   document.getElementById('status').textContent = statusText;
+  updateSaveButton();
+
+  document.getElementById('headerUser').innerHTML = isEditing()
+    ? `<div class="user-name">${escapeHtml(EDITOR)}</div>
+       <div class="user-actions">
+         <button class="header-btn" onclick="openSettings()">⚙️ Settings</button>
+         <button class="header-btn" onclick="logout()">Log out</button>
+       </div>`
+    : '<button class="header-btn solid" onclick="openUnlock()">🔒 Log in</button>';
 }
 
 /* ---------- Drag / drop / tap ---------- */
@@ -535,13 +549,13 @@ function popupEdit(action, body, btnId, btnText, messageId, modalId){
     });
 }
 
-/* ---------- Unlock / Save / Lock ---------- */
+/* ---------- Log in / Save / Log out ---------- */
 
 function openUnlock(){
   const pin = document.getElementById('modalPin');
   document.getElementById('unlockMessage').textContent = '';
   pin.value = '';
-  setButtonBusy('unlockBtn', false, 'Unlock');
+  setButtonBusy('unlockBtn', false, 'Log in');
   openModal('unlockModal');
   setTimeout(() => pin.focus(), 50);
 }
@@ -557,49 +571,58 @@ function confirmUnlock(){
   callApi('unlock', {pin})
     .then(res => {
       EDITOR = res.editor;
-      PIN = pin;
-      editMode = true;
+      TOKEN = res.token;
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify({editor: EDITOR, token: TOKEN})); } catch (e) {}
       closeModal('unlockModal');
       render();
     })
     .catch(err => {
-      setButtonBusy('unlockBtn', false, 'Unlock');
+      setButtonBusy('unlockBtn', false, 'Log in');
       pinInput.value = '';
       pinInput.focus();
       message.textContent = err.message;
     });
 }
 
-// Save = finish pending saves and switch to view mode. Edit reopens without a PIN for a while.
-function saveAndClose(){
-  setStatus(pending ? 'Saving…' : currentStatus());
+// Save = wait for any background saves to finish and confirm. You stay logged in and editing.
+function saveAll(){
+  if (pending) setStatus('Saving…');
   saveQueue.then(() => {
-    editMode = false;
-    sessionUntil = Date.now() + SESSION_MINUTES * 60 * 1000;
-    render();
-    if (!/^Save failed/.test(currentStatus())) {
-      setStatus('All changes saved ✓ ' + (formatLastSaveStatus(BOARD.lastSave) ? '· ' + formatLastSaveStatus(BOARD.lastSave) : ''));
-    }
+    if (/^Save failed/.test(currentStatus())) return;
+    const last = formatLastSaveStatus(BOARD.lastSave);
+    setStatus('All changes saved ✓' + (last ? ' · ' + last : ''));
   });
 }
 
-function resumeEditing(){
-  if (EDITOR && Date.now() < sessionUntil) {
-    editMode = true;
-    render();
-  } else {
-    lockEditing();
-    openUnlock();
-  }
+// Shows how many changes are still sending.
+function updateSaveButton(){
+  const btn = document.getElementById('saveBtn');
+  if (btn) btn.textContent = pending ? 'Saving… (' + pending + ')' : 'Save';
 }
 
-function lockEditing(){
+// Warn before closing/refreshing while changes are still sending.
+window.addEventListener('beforeunload', e => {
+  if (!pending) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
+
+function logout(){
   EDITOR = null;
-  PIN = null;
-  editMode = false;
-  sessionUntil = 0;
+  TOKEN = null;
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
   ['jobModal', 'settingsModal', 'completeModal'].forEach(closeModal);
   render();
+}
+
+function restoreSession(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    if (saved && saved.editor && saved.token) {
+      EDITOR = saved.editor;
+      TOKEN = saved.token;
+    }
+  } catch (e) {}
 }
 
 /* ---------- Add job / edit crew ---------- */
@@ -730,21 +753,41 @@ function confirmComplete(){
 
 function openSettings(){
   if (!isEditing()) return;
-  document.getElementById('settingsMessage').textContent = '';
-  renderVisibilityList();
+  showSettings(settingsSection);
   openModal('settingsModal');
 }
 
+// Each tab is a section; add new settings by adding a tab + section in the HTML and a case here.
+function showSettings(section){
+  settingsSection = section;
+  document.querySelectorAll('.settings-tab').forEach(b => b.classList.toggle('active', b.dataset.section === section));
+  document.querySelectorAll('.settings-section').forEach(el => { el.style.display = el.dataset.section === section ? 'block' : 'none'; });
+  document.getElementById('settingsMessage').textContent = '';
+  if (section === 'employees') renderVisibilityList();
+  if (section === 'closed') renderClosedJobs();
+}
+
+function visibilityRow(p){
+  return `<label class="check-row">
+      <input type="checkbox" data-person="${escapeHtml(p.id)}" ${p.visible ? 'checked' : ''}>
+      <span>${escapeHtml(p.name)}<small>${escapeHtml(p.title || '')}</small></span>
+    </label>`;
+}
+
+// Field employees first; Admin/Safety collapsed at the bottom.
 function renderVisibilityList(){
   const list = document.getElementById('visibilityList');
-  list.innerHTML = BOARD.people
-    .slice()
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(p => `<label class="check-row">
-        <input type="checkbox" data-person="${escapeHtml(p.id)}" ${p.visible ? 'checked' : ''}>
-        <span>${escapeHtml(p.name)}<small>${escapeHtml(p.title || '')}</small></span>
-      </label>`)
-    .join('');
+  const sorted = BOARD.people.slice().sort((a, b) => a.name.localeCompare(b.name));
+  const admin = sorted.filter(p => p.admin);
+  list.innerHTML = sorted.filter(p => !p.admin).map(visibilityRow).join('') +
+    (admin.length
+      ? `<details class="admin-group" ${adminOpen ? 'open' : ''}>
+           <summary>Admin (${admin.length})</summary>
+           ${admin.map(visibilityRow).join('')}
+         </details>`
+      : '');
+  const details = list.querySelector('.admin-group');
+  if (details) details.addEventListener('toggle', () => { adminOpen = details.open; });
   list.querySelectorAll('input[data-person]').forEach(box => {
     box.addEventListener('change', () => setVisibility(box));
   });
@@ -760,6 +803,39 @@ function setVisibility(box){
     .finally(() => {
       busy = false;
       renderVisibilityList();
+    });
+}
+
+function renderClosedJobs(){
+  const list = document.getElementById('closedJobsList');
+  const jobs = BOARD.closedJobs || [];
+  list.innerHTML = jobs.length
+    ? jobs.map(j => {
+        const when = j.completedAt && !isNaN(new Date(j.completedAt)) ? new Date(j.completedAt).toLocaleDateString() : '';
+        const meta = ['Closed ' + when, j.completedBy ? 'by ' + j.completedBy : ''].filter(Boolean).join(' ');
+        return `<div class="closed-row">
+            <span><b>${escapeHtml(j.jobNo)}</b> — ${escapeHtml([j.customer, j.location].filter(Boolean).join(' — '))}
+              <small>${escapeHtml(meta)}${j.completionNotes ? ' · ' + escapeHtml(j.completionNotes) : ''}</small></span>
+            <button class="secondary" data-reopen="${escapeHtml(j.jobNo)}">Reopen</button>
+          </div>`;
+      }).join('')
+    : '<div class="placeholder">No closed jobs.</div>';
+  list.querySelectorAll('[data-reopen]').forEach(btn => {
+    btn.addEventListener('click', () => reopenJob(btn));
+  });
+}
+
+function reopenJob(btn){
+  const message = document.getElementById('settingsMessage');
+  message.textContent = '';
+  document.querySelectorAll('#closedJobsList button').forEach(b => { b.disabled = true; });
+  btn.textContent = 'Reopening…';
+  busy = true;
+  queueEdit('reopenJob', {jobNo: btn.dataset.reopen})
+    .catch(err => { message.textContent = err.message; })
+    .finally(() => {
+      busy = false;
+      renderClosedJobs();
     });
 }
 
@@ -830,6 +906,7 @@ document.addEventListener('dragover', e => { dragY = e.clientY; });
 document.addEventListener('dragend', stopDragScroll);
 document.addEventListener('drop', stopDragScroll);
 
+restoreSession();
 render();
 reloadData();
 </script>
