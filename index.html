@@ -1,0 +1,617 @@
+<!doctype html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CBPS Org Chart Admin</title>
+  <style>
+    :root{
+      --navy:#123f73;
+      --navy2:#092a4f;
+      --teal:#16a7b8;
+      --soft:#f3f8fc;
+      --line:#c9d8e8;
+      --text:#12263f;
+      --muted:#667085;
+      --warn:#fff7e6;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef4f9;color:var(--text)}
+    header{
+      background:linear-gradient(135deg,var(--navy2),var(--navy));
+      color:white;padding:18px 22px;border-bottom:5px solid var(--teal)
+    }
+    .header-inner{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      max-width:1500px;
+      margin:auto;
+    }
+    .header-brand{
+      display:flex;
+      gap:16px;
+      align-items:center;
+    }
+    .construction-wrap{
+      max-width:1500px;
+      margin:14px auto 0;
+      padding:0 12px;
+      display:flex;
+      justify-content:center;
+    }
+    .construction-badge{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      background:linear-gradient(135deg,rgba(255,247,230,.98),rgba(255,224,156,.94));
+      border:2px solid rgba(255,176,32,.82);
+      color:#5f3b00;
+      border-radius:999px;
+      padding:13px 20px;
+      font-size:20px;
+      font-weight:900;
+      white-space:nowrap;
+      box-shadow:0 10px 26px rgba(16,50,90,.16);
+    }
+    .construction-badge .icon{
+      font-size:28px;
+      line-height:1;
+    }
+    .construction-badge .small{
+      display:block;
+      font-size:13px;
+      font-weight:800;
+      opacity:.82;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+    }
+    .logo{width:74px;height:74px;border-radius:50%;background:white;object-fit:contain;padding:6px}
+    h1{margin:0;font-size:30px;letter-spacing:.2px}
+    .sub{opacity:.9;margin-top:4px}
+    .toolbar{max-width:1500px;margin:14px auto;padding:0 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer}
+    .primary{background:var(--navy);color:white}
+    .secondary{background:white;color:var(--navy);border:1px solid var(--line)}
+    .save-control{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+    .status{color:var(--muted);font-size:13px}
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(9,42,79,.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:18px;
+    }
+    .modal-card{
+      background:white;
+      border-radius:18px;
+      padding:18px;
+      width:min(360px,100%);
+      box-shadow:0 18px 45px rgba(0,0,0,.28);
+      border:1px solid var(--line);
+    }
+    .modal-card h3{margin:0 0 8px;color:var(--navy)}
+    .modal-card p{margin:0 0 12px;color:var(--muted);font-size:14px}
+    .modal-input{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      font-size:18px;
+      font-weight:800;
+      text-transform:uppercase;
+      color:var(--navy);
+    }
+    .modal-input + .modal-input{margin-top:10px}
+    select.modal-input{text-transform:none;background:white}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+    .modal-message{margin-top:10px;color:#b42318;font-size:13px;font-weight:700}
+    .page{max-width:1500px;margin:auto;padding:0 12px 30px}
+    .owners{background:var(--navy);color:white;border-radius:18px;padding:16px;text-align:center;margin:10px auto 14px;max-width:430px;box-shadow:0 10px 25px rgba(16,50,90,.18)}
+    .owners h2{margin:0 0 8px;font-size:24px}
+    .owners .names{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;font-weight:700}
+    .main-row{display:grid;grid-template-columns:minmax(240px,.72fr) minmax(0,3fr);gap:14px;align-items:start}
+    .support-column{display:flex;flex-direction:column;gap:14px}
+    .panel{background:white;border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 8px 22px rgba(16,50,90,.08)}
+    .panel h3{margin:0 0 10px;color:var(--navy);font-size:18px;display:flex;align-items:center;gap:8px}
+    .panel h3::before{content:"";width:10px;height:10px;background:var(--teal);border-radius:50%;display:inline-block}
+    .person{border:1px solid #dbe6f2;background:#fff;border-radius:12px;padding:9px 10px;margin:8px 0}
+    .person strong{display:block;color:var(--text)}
+    .person span{font-size:12px;color:var(--muted)}
+    .fieldops{border:2px solid var(--navy)}
+    .divisions{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .division{background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px;min-height:280px}
+    .division h4{margin:0 0 10px;color:var(--navy);font-size:18px}
+    .lead-zone{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+    .lead-card{background:white;border:1px solid var(--line);border-radius:14px;padding:10px;min-height:132px}
+    .lead-card .lead-name{font-weight:800;color:var(--navy);margin-bottom:8px}
+    .dropzone{min-height:76px;border:2px dashed #b8cadc;border-radius:12px;padding:8px;background:#fbfdff}
+    .dropzone.over{border-color:var(--teal);background:#e9fbfd}
+    .pool-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:14px}
+    .pool{min-height:160px;border:2px dashed #b8cadc;border-radius:14px;background:#fbfdff;padding:10px}
+    .pool.over{border-color:var(--teal);background:#e9fbfd}
+    .employee{user-select:none;cursor:grab;background:white;border:1px solid #dbe6f2;border-left:5px solid var(--teal);border-radius:12px;padding:8px 9px;margin:7px 0;box-shadow:0 3px 8px rgba(16,50,90,.06)}
+    .employee:active{cursor:grabbing}
+    .employee strong{display:block;font-size:13px}
+    .employee span{font-size:12px;color:var(--muted)}
+    .section-label{font-weight:800;color:var(--navy);margin-bottom:8px}
+    .note{background:var(--warn);border:1px solid #ffd78a;border-radius:12px;padding:10px;font-size:13px;color:#664900;margin-top:10px}
+    .mobile-note{display:none;background:#e9fbfd;border:1px solid #b5eaf0;color:#07535c;border-radius:12px;padding:10px;font-size:13px;font-weight:700;margin:10px 0}
+    .version-footer{
+      max-width:1500px;
+      margin:0 auto 24px;
+      padding:10px 12px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+    @media(max-width:950px){
+      header{padding:15px 16px}
+      .header-inner{align-items:center;gap:12px}
+      .header-brand{align-items:center}
+      .logo{width:62px;height:62px}
+      h1{font-size:23px;line-height:1.12}
+      .sub{font-size:13px;line-height:1.3}
+      .construction-wrap{margin-top:10px}
+      .construction-badge{
+        width:min(100%,520px);
+        font-size:16px;
+        padding:12px 16px;
+        white-space:normal;
+        text-align:left;
+      }
+      .construction-badge .icon{font-size:24px}
+      .construction-badge .small{font-size:11px}
+      .toolbar{position:sticky;top:0;z-index:50;background:#eef4f9;padding:10px 12px;border-bottom:1px solid var(--line)}
+      .save-control{width:100%}
+      .save-control .primary{width:100%;font-size:16px;padding:13px 14px}
+      .status{margin-left:0;width:100%;line-height:1.35}
+      .main-row,.divisions,.pool-grid{grid-template-columns:1fr}
+      .mobile-note{display:block}
+      .panel,.division{padding:12px;border-radius:16px}
+      .lead-zone{grid-template-columns:1fr}
+      .lead-card{min-height:118px}
+      .dropzone,.pool{min-height:92px}
+      .employee{padding:11px 10px;margin:8px 0}
+      .employee strong{font-size:14px}
+      .employee span{font-size:13px}
+    }
+
+    @media(max-width:650px){
+      .header-inner{flex-direction:row}
+      .construction-badge{align-self:center}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-brand">
+        <img class="logo" src="https://drive.google.com/thumbnail?id=1vBuXxTwkTToVzAmDnBU6y_zb7KnnnIVT&sz=w240" alt="CBPS Logo">
+        <div>
+          <h1>Coastal Bend Power Services, LLC</h1>
+          <div class="sub">Internal Crew Placement Chart — Drag employees under the correct lead, then save</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="construction-wrap">
+    <div class="construction-badge" title="Draft tool under active review">
+      <span class="icon">🚧</span>
+      <span>
+        Under Construction
+        <span class="small">Internal Draft / Review Mode</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="save-control">
+      <button class="primary" onclick="saveAssignments()">Save Changes</button>
+      <span class="status" id="status">Loading org chart…</span>
+    </div>
+
+    <!-- Testing buttons hidden for admin review
+      <button class="secondary" onclick="reloadData()">Reload from Sheet</button>
+      <button class="secondary" onclick="copyJson()">Copy Current Layout JSON</button>
+    -->
+  </div>
+
+  <div id="saveModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <h3>Save Changes</h3>
+      <p>Pick your name and enter your PIN.</p>
+
+      <select id="modalEditor" class="modal-input" aria-label="Editor name">
+        <option value="">Loading editors…</option>
+      </select>
+
+      <input
+        id="modalPin"
+        class="modal-input"
+        type="password"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="PIN"
+        aria-label="Enter PIN"
+        onkeydown="if(event.key==='Enter') confirmSave()"
+      >
+
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeSaveModal()">Cancel</button>
+        <button class="primary" id="modalSaveBtn" onclick="confirmSave()">Save</button>
+      </div>
+
+      <div id="modalMessage" class="modal-message"></div>
+    </div>
+  </div>
+
+  <main class="page">
+    <div class="mobile-note">Mobile review mode: use desktop for easier drag/drop editing.</div>
+
+    <section class="main-row">
+      <div class="support-column">
+        <aside class="panel" id="businessPanel">
+          <h3>Business / Admin</h3>
+          <div id="businessList"></div>
+        </aside>
+
+        <aside class="panel" id="safetyPanel">
+          <h3>Safety / Training</h3>
+          <div id="safetyList"></div>
+        </aside>
+      </div>
+
+      <section class="panel fieldops">
+        <h3>Field Operations</h3>
+        <div class="divisions">
+          <div class="division">
+            <h4>Commercial</h4>
+            <div class="lead-zone" id="commercialLeads"></div>
+          </div>
+          <div class="division">
+            <h4>Residential</h4>
+            <div class="lead-zone" id="residentialLeads"></div>
+          </div>
+        </div>
+
+        <div class="pool-grid">
+          <div class="panel">
+            <div class="section-label">Field Employee Pool — Needs Team Assignment</div>
+            <div class="pool" id="unassignedPool" data-zone="UNASSIGNED" data-division="" data-supervisor=""></div>
+          </div>
+          <div class="panel">
+            <div class="section-label">Part Time / Intern</div>
+            <div class="pool" id="partTimePool" data-zone="PART_TIME_INTERN" data-division="" data-supervisor=""></div>
+          </div>
+        </div>
+        <div class="note">Internal draft for review — weekly crew/team placement may be adjusted.</div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="version-footer">
+    CBPS Org Chart Admin — v0.5.0
+  </footer>
+
+<script>
+let ORG_ROWS = [];
+let dragId = null;
+const LEADS = {
+  commercial: ['LEE','KURT','MARK','PHILIP','MARSHALL','MOKWA'],
+  residential: ['BLAKE','ZACHERY']
+};
+
+const FALLBACK_ROWS = [
+  ['ALTEZA','Person','Alteza Cumpian','Director of Business Services','ADMIN','Business / Admin','','No',true,'','','','BUSINESS_ADMIN',''],
+  ['KRYSTAL','Person','Krystal Kollaja','Administrative Assistant','ADMIN','Business / Admin','','No',true,'','','','BUSINESS_ADMIN',''],
+  ['SHANE','Person','Shane Stuart','Accountant (PT)','ADMIN','Business / Admin','','Yes',true,'','','','BUSINESS_ADMIN','Part Time'],
+  ['WILL','Person','Will Sorensen','Safety Director (PT)','SAFETY','Safety / Training','','Yes',true,'','','','SAFETY_TRAINING','Part Time'],
+  ['LEE','Person','Lee Hasdorff','Field Leadership','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
+  ['KURT','Person','Kurt Forester','Field Leadership','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
+  ['MARK','Person','Mark Fehner','Field Service Supervisor','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
+  ['PHILIP','Person','Philip Kollaja','Field Service Supervisor','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
+  ['MARSHALL','Person','Marshall Mach','Field Service Supervisor','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
+  ['MOKWA','Person','Jonathon Mokwa','Tech 2, Journeyman','FIELDLEAD','Field Leadership','','No',true,'','Commercial','','COMMERCIAL_LEAD',''],
+  ['BLAKE','Person','Blake Woodring','Tech 3, Lead','FIELDLEAD','Field Leadership','','No',true,'','Residential','','RESIDENTIAL_LEAD',''],
+  ['ZACHERY','Person','Zachery Young','Journeyman','FIELDLEAD','Field Leadership','','No',true,'','Residential','','RESIDENTIAL_LEAD',''],
+  ['BARRERA','Person','Jeffrey Barrera','Tech 1, Apprentice','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['EVANS','Person','Nathan Evans','Apprentice Electrician','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['LANE','Person','Lane Fikes','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['GAIDA','Person','Paul Gaida','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['GEFFERT','Person','Cody Geffert','Apprentice Electrician','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['ZHASDORFF','Person','Zachary Hasdorff','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['HAWORTH','Person','Weston Haworth','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['HENRY','Person','Hayden Henry','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['HILBRICH','Person','Ricky Hilbrich','Tech 1, Apprentice','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['MOTAL','Person','Nathan Motal','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['STEIN','Person','Cayden Stein','Tech 1 (PT)','PART_TIME_INTERN','Part Time / Intern','','Yes',true,'','','','PART_TIME_INTERN','Part Time Employee'],
+  ['TORRES','Person','Jonathon Torres','Tech 1, Apprentice','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['WILLBERG','Person','Dalan Willberg','Tech 1','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['GWOODRING','Person','Gregory Woodring','Apprentice Electrician','UNASSIGNED','Field Tech Pool','','No',true,'','','','UNASSIGNED',''],
+  ['TRENT','Person','Trent Foerster','Summer Intern','PART_TIME_INTERN','Part Time / Intern','','Yes',true,'','','','PART_TIME_INTERN','Summer Intern'],
+  ['CADEN','Person','Caden Gonzales','Part Time Employee','PART_TIME_INTERN','Part Time / Intern','','Yes',true,'Works during the year while attending college.','','','PART_TIME_INTERN','Part Time Employee']
+];
+
+function fallbackObjects(){
+  const headers = ['Node ID','Node Type','Display Name','Title','Parent ID','Org Group','Sort','PT?','Show on Chart','Notes','Division','Supervisor ID','Visual Group','Employment Category'];
+  return FALLBACK_ROWS.map(r => Object.fromEntries(headers.map((h,i)=>[h,r[i]])));
+}
+
+function reloadData(){
+  setStatus('Loading from Sheet…');
+  if (typeof google !== 'undefined' && google.script && google.script.run) {
+    google.script.run
+      .withSuccessHandler(data => {
+        ORG_ROWS = data.rows || [];
+        render();
+        setStatus(formatLastSaveStatus(data.lastSave) || 'No saved updates logged yet');
+      })
+      .withFailureHandler(err => {
+        ORG_ROWS = fallbackObjects();
+        render();
+        setStatus('Sheet load failed — using fallback data: ' + err.message);
+      })
+      .getOrgData();
+  } else {
+    ORG_ROWS = fallbackObjects();
+    render();
+    setStatus('Preview mode — using fallback data');
+  }
+}
+
+function render(){
+  renderSupport('businessList', r => r['Visual Group'] === 'BUSINESS_ADMIN' || r['Org Group'] === 'Business / Admin');
+  renderSupport('safetyList', r => r['Visual Group'] === 'SAFETY_TRAINING' || r['Org Group'] === 'Safety / Training');
+  renderLeads('commercialLeads', LEADS.commercial, 'Commercial');
+  renderLeads('residentialLeads', LEADS.residential, 'Residential');
+  renderPool('unassignedPool', r => isFieldEmployee(r) && !isLead(r) && zoneOf(r) === 'UNASSIGNED');
+  renderPool('partTimePool', r => isSaveableAssignment(r) && (zoneOf(r) === 'PART_TIME_INTERN' || r['Org Group'] === 'Part Time / Intern'));
+  wireDropzones();
+}
+
+function renderSupport(id, filter){
+  const el = document.getElementById(id);
+  el.innerHTML = ORG_ROWS.filter(filter).map(personMarkup).join('');
+}
+
+function renderLeads(id, leadIds, division){
+  const wrap = document.getElementById(id);
+  wrap.innerHTML = leadIds.map(leadId => {
+    const lead = ORG_ROWS.find(r => r['Node ID'] === leadId) || {'Node ID':leadId,'Display Name':leadId,'Title':'Team Lead'};
+    const reports = ORG_ROWS.filter(r => String(r['Supervisor ID'] || '') === leadId);
+    return `<div class="lead-card">
+      <div class="lead-name">${escapeHtml(lead['Display Name'])}</div>
+      <div class="dropzone" data-zone="LEAD" data-division="${division}" data-supervisor="${leadId}">
+        ${reports.map(employeeMarkup).join('') || '<div style="color:#98a2b3;font-size:12px;text-align:center;margin-top:18px">Direct reports pending</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPool(id, filter){
+  const el = document.getElementById(id);
+  el.innerHTML = ORG_ROWS.filter(filter).map(employeeMarkup).join('');
+}
+
+function personMarkup(r){
+  return `<div class="person"><strong>${escapeHtml(r['Display Name'])}</strong><span>${escapeHtml(r['Title'] || '')}</span></div>`;
+}
+
+function employeeMarkup(r){
+  return `<div class="employee" draggable="true" data-id="${escapeHtml(r['Node ID'])}">
+    <strong>${escapeHtml(r['Display Name'])}</strong><span>${escapeHtml(r['Title'] || '')}</span>
+  </div>`;
+}
+
+function wireDropzones(){
+  document.querySelectorAll('.employee').forEach(card => {
+    card.addEventListener('dragstart', e => { dragId = card.dataset.id; e.dataTransfer.setData('text/plain', dragId); });
+  });
+  document.querySelectorAll('.dropzone,.pool').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('over');
+      const nodeId = e.dataTransfer.getData('text/plain') || dragId;
+      moveEmployee(nodeId, zone.dataset);
+    });
+  });
+}
+
+function moveEmployee(nodeId, data){
+  const r = ORG_ROWS.find(x => x['Node ID'] === nodeId);
+  if (!r) return;
+  r['Parent ID'] = data.supervisor || data.zone || '';
+  r['Division'] = data.division || '';
+  r['Supervisor ID'] = data.supervisor || '';
+  r['Visual Group'] = data.zone || '';
+  if (data.zone === 'PART_TIME_INTERN') r['Employment Category'] = r['Employment Category'] || 'Part Time';
+  render();
+}
+
+let pendingAssignments = [];
+
+function saveAssignments(){
+  pendingAssignments = ORG_ROWS
+    .filter(isSaveableAssignment)
+    .map((r, i) => ({
+      nodeId: r['Node ID'],
+      parentId: r['Parent ID'] || '',
+      division: r['Division'] || '',
+      supervisorId: r['Supervisor ID'] || '',
+      visualGroup: r['Visual Group'] || '',
+      employmentCategory: r['Employment Category'] || '',
+      sort: i + 1
+    }));
+
+  openSaveModal();
+}
+
+const LAST_EDITOR_KEY = 'cbpsOrgChartLastEditor';
+
+function loadEditors(){
+  const select = document.getElementById('modalEditor');
+  if (!(typeof google !== 'undefined' && google.script && google.script.run)) {
+    fillEditorOptions(['Preview Editor']);
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(names => fillEditorOptions(names || []))
+    .withFailureHandler(() => { select.innerHTML = '<option value="">Could not load editors</option>'; })
+    .getEditors();
+}
+
+function fillEditorOptions(names){
+  const select = document.getElementById('modalEditor');
+  select.innerHTML = '';
+  const first = document.createElement('option');
+  first.value = '';
+  first.textContent = names.length ? 'Select your name' : 'No editors set up yet';
+  select.appendChild(first);
+  names.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+  let last = '';
+  try { last = localStorage.getItem(LAST_EDITOR_KEY) || ''; } catch (e) {}
+  if (last && names.includes(last)) select.value = last;
+}
+
+function openSaveModal(){
+  const modal = document.getElementById('saveModal');
+  const select = document.getElementById('modalEditor');
+  const pin = document.getElementById('modalPin');
+  const message = document.getElementById('modalMessage');
+
+  if (message) message.textContent = '';
+  if (pin) pin.value = '';
+  setModalBusy(false);
+  if (modal) modal.style.display = 'flex';
+
+  setTimeout(() => {
+    if (select && !select.value) select.focus();
+    else if (pin) pin.focus();
+  }, 50);
+}
+
+function closeSaveModal(){
+  const modal = document.getElementById('saveModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function setModalBusy(busy){
+  const btn = document.getElementById('modalSaveBtn');
+  if (btn) {
+    btn.disabled = busy;
+    btn.textContent = busy ? 'Checking…' : 'Save';
+  }
+}
+
+function confirmSave(){
+  const select = document.getElementById('modalEditor');
+  const pinInput = document.getElementById('modalPin');
+  const message = document.getElementById('modalMessage');
+  const editor = select ? select.value : '';
+  const pin = pinInput ? pinInput.value.trim() : '';
+
+  if (!editor) {
+    if (message) message.textContent = 'Select your name.';
+    if (select) select.focus();
+    return;
+  }
+  if (!pin) {
+    if (message) message.textContent = 'Enter your PIN.';
+    if (pinInput) pinInput.focus();
+    return;
+  }
+
+  try { localStorage.setItem(LAST_EDITOR_KEY, editor); } catch (e) {}
+
+  if (typeof google !== 'undefined' && google.script && google.script.run) {
+    if (message) message.textContent = '';
+    setModalBusy(true);
+    setStatus('Saving…');
+    google.script.run
+      .withSuccessHandler(res => {
+        closeSaveModal();
+        const savedBy = res && res.savedBy ? res.savedBy : editor;
+        const savedAt = res && res.savedAt ? new Date(res.savedAt) : new Date();
+        setStatus(formatSavedStatus(savedBy, savedAt));
+      })
+      .withFailureHandler(err => {
+        setModalBusy(false);
+        if (pinInput) { pinInput.value = ''; pinInput.focus(); }
+        if (message) message.textContent = err.message;
+        setStatus('Save failed: ' + err.message);
+      })
+      .saveAssignments({editor, pin, assignments: pendingAssignments});
+  } else {
+    closeSaveModal();
+    copyText(JSON.stringify({editor, assignments: pendingAssignments}, null, 2));
+    setStatus('Preview mode — copied layout JSON instead of saving');
+  }
+}
+
+function copyJson(){
+  copyText(JSON.stringify(ORG_ROWS, null, 2));
+  setStatus('Copied current layout JSON');
+}
+
+function copyText(text){
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  });
+}
+
+function isSaveableAssignment(r){
+  return r['Node Type'] === 'Person';
+}
+
+function isFieldEmployee(r){
+  const group = String(r['Org Group'] || '');
+  return group.includes('Field') || ['UNASSIGNED','PART_TIME_INTERN'].includes(zoneOf(r));
+}
+
+function isLead(r){
+  return [...LEADS.commercial, ...LEADS.residential].includes(String(r['Node ID']));
+}
+
+function zoneOf(r){
+  return String(r['Visual Group'] || r['Parent ID'] || '').trim();
+}
+
+function escapeHtml(str){
+  return String(str || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+
+function formatSavedStatus(savedBy, savedAt){
+  const dateText = savedAt.toLocaleDateString();
+  const timeText = savedAt.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+  return `Last saved by ${savedBy} on ${dateText} at ${timeText}`;
+}
+
+function formatLastSaveStatus(lastSave){
+  if (!lastSave || !lastSave.savedAt || !lastSave.savedBy) return '';
+  const savedAt = new Date(lastSave.savedAt);
+  if (isNaN(savedAt.getTime())) return '';
+  return formatSavedStatus(lastSave.savedBy, savedAt);
+}
+
+function setStatus(msg){ document.getElementById('status').textContent = msg; }
+
+reloadData();
+loadEditors();
+</script>
+</body>
+</html>
