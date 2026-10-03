@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>CBPS Org Chart Admin</title>
+  <title>CBPS Whiteboard</title>
   <style>
     :root{
       --navy:#123f73;
@@ -15,6 +15,7 @@
       --text:#12263f;
       --muted:#667085;
       --warn:#fff7e6;
+      --danger:#b42318;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef4f9;color:var(--text)}
@@ -22,169 +23,94 @@
       background:linear-gradient(135deg,var(--navy2),var(--navy));
       color:white;padding:18px 22px;border-bottom:5px solid var(--teal)
     }
-    .header-inner{
-      display:flex;
-      gap:16px;
-      align-items:center;
-      max-width:1500px;
-      margin:auto;
-    }
-    .header-brand{
-      display:flex;
-      gap:16px;
-      align-items:center;
-    }
-    .construction-wrap{
-      max-width:1500px;
-      margin:14px auto 0;
-      padding:0 12px;
-      display:flex;
-      justify-content:center;
-    }
+    .header-inner{display:flex;gap:16px;align-items:center;max-width:1500px;margin:auto}
+    .header-brand{display:flex;gap:16px;align-items:center}
+    .construction-wrap{max-width:1500px;margin:14px auto 0;padding:0 12px;display:flex;justify-content:center}
     .construction-badge{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:14px;
+      display:flex;align-items:center;justify-content:center;gap:14px;
       background:linear-gradient(135deg,rgba(255,247,230,.98),rgba(255,224,156,.94));
-      border:2px solid rgba(255,176,32,.82);
-      color:#5f3b00;
-      border-radius:999px;
-      padding:13px 20px;
-      font-size:20px;
-      font-weight:900;
-      white-space:nowrap;
+      border:2px solid rgba(255,176,32,.82);color:#5f3b00;border-radius:999px;
+      padding:13px 20px;font-size:20px;font-weight:900;white-space:nowrap;
       box-shadow:0 10px 26px rgba(16,50,90,.16);
     }
-    .construction-badge .icon{
-      font-size:28px;
-      line-height:1;
-    }
-    .construction-badge .small{
-      display:block;
-      font-size:13px;
-      font-weight:800;
-      opacity:.82;
-      letter-spacing:.4px;
-      text-transform:uppercase;
-    }
+    .construction-badge .icon{font-size:28px;line-height:1}
+    .construction-badge .small{display:block;font-size:13px;font-weight:800;opacity:.82;letter-spacing:.4px;text-transform:uppercase}
     .logo{width:74px;height:74px;border-radius:50%;background:white;object-fit:contain;padding:6px}
     h1{margin:0;font-size:30px;letter-spacing:.2px}
     .sub{opacity:.9;margin-top:4px}
+
     .toolbar{max-width:1500px;margin:14px auto;padding:0 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer}
+    .toolbar .who{font-weight:800;color:var(--navy)}
+    .status{color:var(--muted);font-size:13px;flex-basis:100%}
+    button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;font-size:14px}
+    button:disabled{opacity:.55;cursor:default}
     .primary{background:var(--navy);color:white}
     .secondary{background:white;color:var(--navy);border:1px solid var(--line)}
-    .save-control{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
-    .status{color:var(--muted);font-size:13px}
-    .modal-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(9,42,79,.55);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-      padding:18px;
-    }
-    .modal-card{
-      background:white;
-      border-radius:18px;
-      padding:18px;
-      width:min(360px,100%);
-      box-shadow:0 18px 45px rgba(0,0,0,.28);
-      border:1px solid var(--line);
-    }
-    .modal-card h3{margin:0 0 8px;color:var(--navy)}
-    .modal-card p{margin:0 0 12px;color:var(--muted);font-size:14px}
-    .modal-input{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:12px;
-      font-size:18px;
-      font-weight:800;
-      text-transform:uppercase;
-      color:var(--navy);
-    }
-    .modal-input + .modal-input{margin-top:10px}
-    select.modal-input{text-transform:none;background:white}
-    .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
-    .modal-message{margin-top:10px;color:#b42318;font-size:13px;font-weight:700}
+    .link-btn{background:none;border:0;color:var(--muted);font-size:12px;font-weight:700;padding:6px 0;text-decoration:underline}
+
     .page{max-width:1500px;margin:auto;padding:0 12px 30px}
-    .owners{background:var(--navy);color:white;border-radius:18px;padding:16px;text-align:center;margin:10px auto 14px;max-width:430px;box-shadow:0 10px 25px rgba(16,50,90,.18)}
-    .owners h2{margin:0 0 8px;font-size:24px}
-    .owners .names{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;font-weight:700}
-    .main-row{display:grid;grid-template-columns:minmax(240px,.72fr) minmax(0,3fr);gap:14px;align-items:start}
-    .support-column{display:flex;flex-direction:column;gap:14px}
+    .board{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(0,3fr);gap:14px;align-items:start}
     .panel{background:white;border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 8px 22px rgba(16,50,90,.08)}
     .panel h3{margin:0 0 10px;color:var(--navy);font-size:18px;display:flex;align-items:center;gap:8px}
     .panel h3::before{content:"";width:10px;height:10px;background:var(--teal);border-radius:50%;display:inline-block}
-    .person{border:1px solid #dbe6f2;background:#fff;border-radius:12px;padding:9px 10px;margin:8px 0}
-    .person strong{display:block;color:var(--text)}
-    .person span{font-size:12px;color:var(--muted)}
-    .fieldops{border:2px solid var(--navy)}
-    .divisions{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .division{background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px;min-height:280px}
-    .division h4{margin:0 0 10px;color:var(--navy);font-size:18px}
-    .lead-zone{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
-    .lead-card{background:white;border:1px solid var(--line);border-radius:14px;padding:10px;min-height:132px}
-    .lead-card .lead-name{font-weight:800;color:var(--navy);margin-bottom:8px}
-    .dropzone{min-height:76px;border:2px dashed #b8cadc;border-radius:12px;padding:8px;background:#fbfdff}
+    .unassigned-panel{position:sticky;top:10px}
+    .count{color:var(--muted);font-weight:700;font-size:14px}
+
+    .jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+    .job{background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px}
+    .job-no{font-weight:900;color:var(--navy);font-size:17px}
+    .job-customer{font-weight:700}
+    .job-meta{font-size:12px;color:var(--muted)}
+    .job-notes{font-size:12px;color:#664900;background:var(--warn);border-radius:8px;padding:6px 8px}
+    .slot-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+    .empty-board{color:var(--muted);text-align:center;padding:40px 10px;font-weight:700}
+
+    .dropzone{min-height:56px;border:2px dashed #b8cadc;border-radius:12px;padding:6px;background:#fbfdff}
+    .dropzone.lead-zone{border-color:#9fb6cf;background:white}
     .dropzone.over{border-color:var(--teal);background:#e9fbfd}
-    .pool-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:14px}
-    .pool{min-height:160px;border:2px dashed #b8cadc;border-radius:14px;background:#fbfdff;padding:10px}
-    .pool.over{border-color:var(--teal);background:#e9fbfd}
-    .employee{user-select:none;cursor:grab;background:white;border:1px solid #dbe6f2;border-left:5px solid var(--teal);border-radius:12px;padding:8px 9px;margin:7px 0;box-shadow:0 3px 8px rgba(16,50,90,.06)}
-    .employee:active{cursor:grabbing}
+    .pool{min-height:160px}
+    .placeholder{color:#98a2b3;font-size:12px;text-align:center;padding:12px 0}
+
+    .employee{user-select:none;background:white;border:1px solid #dbe6f2;border-left:5px solid var(--teal);border-radius:12px;padding:8px 9px;margin:5px 0;box-shadow:0 3px 8px rgba(16,50,90,.06)}
+    .employee.lead{border-left-color:var(--navy)}
+    .editing .employee{cursor:grab}
+    .editing .employee:active{cursor:grabbing}
     .employee strong{display:block;font-size:13px}
     .employee span{font-size:12px;color:var(--muted)}
-    .section-label{font-weight:800;color:var(--navy);margin-bottom:8px}
-    .note{background:var(--warn);border:1px solid #ffd78a;border-radius:12px;padding:10px;font-size:13px;color:#664900;margin-top:10px}
-    .mobile-note{display:none;background:#e9fbfd;border:1px solid #b5eaf0;color:#07535c;border-radius:12px;padding:10px;font-size:13px;font-weight:700;margin:10px 0}
-    .version-footer{
-      max-width:1500px;
-      margin:0 auto 24px;
-      padding:10px 12px;
-      color:var(--muted);
-      font-size:12px;
-      text-align:center;
-    }
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(9,42,79,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:18px}
+    .modal-card{background:white;border-radius:18px;padding:18px;width:min(420px,100%);max-height:90vh;overflow:auto;box-shadow:0 18px 45px rgba(0,0,0,.28);border:1px solid var(--line)}
+    .modal-card h3{margin:0 0 8px;color:var(--navy)}
+    .modal-card p{margin:0 0 12px;color:var(--muted);font-size:14px}
+    .modal-card label.field{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.3px}
+    .modal-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;color:var(--text);background:white}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+    .modal-message{margin-top:10px;color:var(--danger);font-size:13px;font-weight:700}
+    .check-list{border:1px solid var(--line);border-radius:12px;max-height:260px;overflow:auto;padding:4px 10px}
+    .check-row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #eef2f6;font-size:14px}
+    .check-row:last-child{border-bottom:0}
+    .check-row input{width:20px;height:20px;flex:none}
+    .check-row small{display:block;color:var(--muted);font-size:12px}
+
+    .version-footer{max-width:1500px;margin:0 auto 24px;padding:10px 12px;color:var(--muted);font-size:12px;text-align:center}
+
     @media(max-width:950px){
       header{padding:15px 16px}
       .header-inner{align-items:center;gap:12px}
-      .header-brand{align-items:center}
       .logo{width:62px;height:62px}
       h1{font-size:23px;line-height:1.12}
       .sub{font-size:13px;line-height:1.3}
       .construction-wrap{margin-top:10px}
-      .construction-badge{
-        width:min(100%,520px);
-        font-size:16px;
-        padding:12px 16px;
-        white-space:normal;
-        text-align:left;
-      }
+      .construction-badge{width:min(100%,520px);font-size:16px;padding:12px 16px;white-space:normal;text-align:left}
       .construction-badge .icon{font-size:24px}
       .construction-badge .small{font-size:11px}
       .toolbar{position:sticky;top:0;z-index:50;background:#eef4f9;padding:10px 12px;border-bottom:1px solid var(--line)}
-      .save-control{width:100%}
-      .save-control .primary{width:100%;font-size:16px;padding:13px 14px}
-      .status{margin-left:0;width:100%;line-height:1.35}
-      .main-row,.divisions,.pool-grid{grid-template-columns:1fr}
-      .mobile-note{display:block}
-      .panel,.division{padding:12px;border-radius:16px}
-      .lead-zone{grid-template-columns:1fr}
-      .lead-card{min-height:118px}
-      .dropzone,.pool{min-height:92px}
-      .employee{padding:11px 10px;margin:8px 0}
+      .board{grid-template-columns:1fr}
+      .unassigned-panel{position:static}
+      .pool{min-height:92px}
+      .employee{padding:11px 10px;margin:7px 0}
       .employee strong{font-size:14px}
       .employee span{font-size:13px}
-    }
-
-    @media(max-width:650px){
-      .header-inner{flex-direction:row}
-      .construction-badge{align-self:center}
     }
   </style>
 </head>
@@ -195,7 +121,7 @@
         <img class="logo" src="https://drive.google.com/thumbnail?id=1vBuXxTwkTToVzAmDnBU6y_zb7KnnnIVT&sz=w240" alt="CBPS Logo">
         <div>
           <h1>Coastal Bend Power Services, LLC</h1>
-          <div class="sub">Internal Crew Placement Chart — Drag employees under the correct lead, then save</div>
+          <div class="sub">Crew Whiteboard — who is on which job</div>
         </div>
       </div>
     </div>
@@ -211,104 +137,103 @@
     </div>
   </div>
 
-  <div class="toolbar">
-    <div class="save-control">
-      <button class="primary" onclick="saveAssignments()">Save Changes</button>
-      <span class="status" id="status">Loading org chart…</span>
-    </div>
-
-    <!-- Testing buttons hidden for admin review
-      <button class="secondary" onclick="reloadData()">Reload from Sheet</button>
-      <button class="secondary" onclick="copyJson()">Copy Current Layout JSON</button>
-    -->
-  </div>
-
-  <div id="saveModal" class="modal-backdrop" style="display:none;">
-    <div class="modal-card">
-      <h3>Save Changes</h3>
-      <p>Pick your name and enter your PIN.</p>
-
-      <select id="modalEditor" class="modal-input" aria-label="Editor name">
-        <option value="">Loading editors…</option>
-      </select>
-
-      <input
-        id="modalPin"
-        class="modal-input"
-        type="password"
-        inputmode="numeric"
-        autocomplete="off"
-        placeholder="PIN"
-        aria-label="Enter PIN"
-        onkeydown="if(event.key==='Enter') confirmSave()"
-      >
-
-      <div class="modal-actions">
-        <button class="secondary" onclick="closeSaveModal()">Cancel</button>
-        <button class="primary" id="modalSaveBtn" onclick="confirmSave()">Save</button>
-      </div>
-
-      <div id="modalMessage" class="modal-message"></div>
-    </div>
-  </div>
+  <div class="toolbar" id="toolbar"></div>
 
   <main class="page">
-    <div class="mobile-note">Mobile review mode: use desktop for easier drag/drop editing.</div>
+    <section class="board" id="board">
+      <aside class="panel unassigned-panel">
+        <h3>Unassigned <span class="count" id="unassignedCount"></span></h3>
+        <div class="dropzone pool" id="unassignedPool" data-job="" data-role=""></div>
+      </aside>
 
-    <section class="main-row">
-      <div class="support-column">
-        <aside class="panel" id="businessPanel">
-          <h3>Business / Admin</h3>
-          <div id="businessList"></div>
-        </aside>
-
-        <aside class="panel" id="safetyPanel">
-          <h3>Safety / Training</h3>
-          <div id="safetyList"></div>
-        </aside>
-      </div>
-
-      <section class="panel fieldops">
-        <h3>Field Operations</h3>
-        <div class="divisions">
-          <div class="division">
-            <h4>Commercial</h4>
-            <div class="lead-zone" id="commercialLeads"></div>
-          </div>
-          <div class="division">
-            <h4>Residential</h4>
-            <div class="lead-zone" id="residentialLeads"></div>
-          </div>
-        </div>
-
-        <div class="pool-grid">
-          <div class="panel">
-            <div class="section-label">Field Employee Pool — Needs Team Assignment</div>
-            <div class="pool" id="unassignedPool" data-zone="UNASSIGNED" data-division="" data-supervisor=""></div>
-          </div>
-          <div class="panel">
-            <div class="section-label">Part Time / Intern</div>
-            <div class="pool" id="partTimePool" data-zone="PART_TIME_INTERN" data-division="" data-supervisor=""></div>
-          </div>
-        </div>
-        <div class="note">Internal draft for review — weekly crew/team placement may be adjusted.</div>
+      <section class="panel">
+        <h3>Active Jobs <span class="count" id="jobCount"></span></h3>
+        <div class="jobs" id="jobs"></div>
       </section>
     </section>
   </main>
 
   <footer class="version-footer">
-    CBPS Org Chart Admin — v0.6.1
+    CBPS Whiteboard — v0.7.0
   </footer>
 
-<script>
-let ORG_ROWS = [];
-let dragId = null;
-const LEADS = {
-  commercial: ['LEE','KURT','MARK','PHILIP','MARSHALL','MOKWA'],
-  residential: ['BLAKE','ZACHERY']
-};
+  <!-- Unlock -->
+  <div id="unlockModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <h3>Unlock editing</h3>
+      <p>Pick your name and enter your PIN.</p>
+      <select id="modalEditor" class="modal-input" aria-label="Editor name">
+        <option value="">Loading editors…</option>
+      </select>
+      <input id="modalPin" class="modal-input" style="margin-top:10px" type="password" inputmode="numeric"
+        autocomplete="off" placeholder="PIN" aria-label="Enter PIN"
+        onkeydown="if(event.key==='Enter') confirmUnlock()">
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeModal('unlockModal')">Cancel</button>
+        <button class="primary" id="unlockBtn" onclick="confirmUnlock()">Unlock</button>
+      </div>
+      <div id="unlockMessage" class="modal-message"></div>
+    </div>
+  </div>
 
+  <!-- Add job -->
+  <div id="jobModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <h3>Add Job to Board</h3>
+
+      <label class="field" for="jobPick">Job</label>
+      <select id="jobPick" class="modal-input" onchange="toggleNewJobFields()"></select>
+
+      <div id="newJobFields" style="display:none;">
+        <label class="field" for="newJobNo">Job #</label>
+        <input id="newJobNo" class="modal-input" type="text" autocomplete="off">
+        <label class="field" for="newJobCustomer">Customer</label>
+        <input id="newJobCustomer" class="modal-input" type="text" autocomplete="off">
+        <label class="field" for="newJobLocation">Location</label>
+        <input id="newJobLocation" class="modal-input" type="text" autocomplete="off">
+        <label class="field" for="newJobNotes">Notes</label>
+        <input id="newJobNotes" class="modal-input" type="text" autocomplete="off">
+      </div>
+
+      <label class="field" for="jobLead">Crew lead</label>
+      <select id="jobLead" class="modal-input" onchange="renderCrewChecklist()"></select>
+
+      <label class="field">Crew (optional — leave empty for a solo job)</label>
+      <div class="check-list" id="jobCrew"></div>
+
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeModal('jobModal')">Cancel</button>
+        <button class="primary" id="jobSaveBtn" onclick="confirmAddJob()">Save Job</button>
+      </div>
+      <div id="jobMessage" class="modal-message"></div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settingsModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <h3>Settings — Who shows on the board</h3>
+      <p>Unticked people are hidden from the board. They stay in the data and history.</p>
+      <div class="check-list" id="visibilityList"></div>
+      <div class="modal-actions">
+        <button class="primary" onclick="closeModal('settingsModal')">Done</button>
+      </div>
+      <div id="settingsMessage" class="modal-message"></div>
+    </div>
+  </div>
+
+<script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbw22j6Z8pW_uPzsElHs3qTUCyeqnDGhYwegQMIGLFxLL_8UDJh2wzzyIsYx5muuIi7G/exec';
+const LAST_EDITOR_KEY = 'cbpsOrgChartLastEditor';
+
+let BOARD = {people: [], jobs: [], assignments: [], lastSave: null};
+// Held in memory only; cleared on Lock or page refresh. The backend re-checks the PIN on every change.
+let EDITOR = null;
+let PIN = null;
+let dragId = null;
+let busy = false;
+
+/* ---------- API ---------- */
 
 // GET ?action=... or POST {action,...}; backend replies {ok:true,data} or {ok:false,error}.
 function callApi(action, body){
@@ -323,111 +248,191 @@ function callApi(action, body){
     });
 }
 
-function reloadData(){
-  setStatus('Loading from Sheet…');
-  callApi('getOrgData')
-    .then(data => {
-      ORG_ROWS = data.rows || [];
+// Board edits: sends editor + PIN, replaces the board with the server's copy.
+function editApi(action, body){
+  busy = true;
+  setStatus('Saving…');
+  return callApi(action, Object.assign({editor: EDITOR, pin: PIN}, body))
+    .then(board => {
+      busy = false;
+      BOARD = board;
       render();
-      setStatus(formatLastSaveStatus(data.lastSave) || 'No saved updates logged yet');
+      setStatus(formatLastSaveStatus(BOARD.lastSave) || 'Saved');
+      return board;
     })
     .catch(err => {
-      ORG_ROWS = [];
-      render();
-      setStatus('Sheet load failed: ' + err.message);
+      busy = false;
+      if (/PIN|Too many/.test(err.message)) lockEditing();
+      setStatus('Save failed: ' + err.message);
+      reloadData(true);
+      throw err;
     });
 }
 
+function reloadData(keepStatus){
+  if (!keepStatus) setStatus('Loading board…');
+  return callApi('getBoard')
+    .then(board => {
+      BOARD = board;
+      render();
+      if (!keepStatus) setStatus(formatLastSaveStatus(BOARD.lastSave) || 'No saved updates logged yet');
+    })
+    .catch(err => {
+      render();
+      setStatus('Board load failed: ' + err.message);
+    });
+}
+
+/* ---------- Render ---------- */
+
+function peopleById(){
+  const map = {};
+  BOARD.people.forEach(p => { map[p.id] = p; });
+  return map;
+}
+
+function assignmentByPerson(){
+  const map = {};
+  BOARD.assignments.forEach(a => { map[a.nodeId] = a; });
+  return map;
+}
+
+function jobsOnBoard(){
+  return BOARD.jobs.filter(j => j.onBoard).sort((a, b) => a.jobNo.localeCompare(b.jobNo, undefined, {numeric: true}));
+}
+
 function render(){
-  renderSupport('businessList', r => r['Visual Group'] === 'BUSINESS_ADMIN' || r['Org Group'] === 'Business / Admin');
-  renderSupport('safetyList', r => r['Visual Group'] === 'SAFETY_TRAINING' || r['Org Group'] === 'Safety / Training');
-  renderLeads('commercialLeads', LEADS.commercial, 'Commercial');
-  renderLeads('residentialLeads', LEADS.residential, 'Residential');
-  renderPool('unassignedPool', r => isFieldEmployee(r) && !isLead(r) && zoneOf(r) === 'UNASSIGNED');
-  renderPool('partTimePool', r => isSaveableAssignment(r) && (zoneOf(r) === 'PART_TIME_INTERN' || r['Org Group'] === 'Part Time / Intern'));
-  wireDropzones();
+  document.body.classList.toggle('editing', !!EDITOR);
+  renderToolbar();
+
+  const people = peopleById();
+  const assigned = assignmentByPerson();
+  const visible = BOARD.people.filter(p => p.visible);
+
+  const unassigned = visible
+    .filter(p => !assigned[p.id])
+    .sort((a, b) => a.name.localeCompare(b.name));
+  document.getElementById('unassignedPool').innerHTML =
+    unassigned.map(p => employeeMarkup(p, false)).join('') ||
+    '<div class="placeholder">Everyone is placed</div>';
+  document.getElementById('unassignedCount').textContent = '(' + unassigned.length + ')';
+
+  const jobs = jobsOnBoard();
+  document.getElementById('jobCount').textContent = '(' + jobs.length + ')';
+  document.getElementById('jobs').innerHTML = jobs.length
+    ? jobs.map(job => jobMarkup(job, people)).join('')
+    : '<div class="empty-board">No jobs on the board yet.' + (EDITOR ? ' Tap “+ Add Job”.' : '') + '</div>';
+
+  wireDragDrop();
 }
 
-function renderSupport(id, filter){
-  const el = document.getElementById(id);
-  el.innerHTML = ORG_ROWS.filter(filter).map(personMarkup).join('');
-}
+function jobMarkup(job, people){
+  const onJob = BOARD.assignments.filter(a => a.jobNo === job.jobNo && people[a.nodeId] && people[a.nodeId].visible);
+  const lead = onJob.find(a => a.role === 'Lead');
+  const crew = onJob.filter(a => a.role === 'Crew')
+    .map(a => people[a.nodeId])
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const jobAttr = escapeHtml(job.jobNo);
 
-function renderLeads(id, leadIds, division){
-  const wrap = document.getElementById(id);
-  wrap.innerHTML = leadIds.map(leadId => {
-    const lead = ORG_ROWS.find(r => r['Node ID'] === leadId) || {'Node ID':leadId,'Display Name':leadId,'Title':'Team Lead'};
-    const reports = ORG_ROWS.filter(r => String(r['Supervisor ID'] || '') === leadId);
-    return `<div class="lead-card">
-      <div class="lead-name">${escapeHtml(lead['Display Name'])}</div>
-      <div class="dropzone" data-zone="LEAD" data-division="${division}" data-supervisor="${leadId}">
-        ${reports.map(employeeMarkup).join('') || '<div style="color:#98a2b3;font-size:12px;text-align:center;margin-top:18px">Direct reports pending</div>'}
+  return `<div class="job">
+    <div>
+      <div class="job-no">${escapeHtml(job.jobNo)}</div>
+      <div class="job-customer">${escapeHtml(job.customer)}</div>
+      ${job.location ? `<div class="job-meta">${escapeHtml(job.location)}</div>` : ''}
+    </div>
+    ${job.notes ? `<div class="job-notes">${escapeHtml(job.notes)}</div>` : ''}
+    <div>
+      <div class="slot-label">Lead</div>
+      <div class="dropzone lead-zone" data-job="${jobAttr}" data-role="Lead">
+        ${lead ? employeeMarkup(people[lead.nodeId], true) : '<div class="placeholder">No lead</div>'}
       </div>
-    </div>`;
-  }).join('');
-}
-
-function renderPool(id, filter){
-  const el = document.getElementById(id);
-  el.innerHTML = ORG_ROWS.filter(filter).map(employeeMarkup).join('');
-}
-
-function personMarkup(r){
-  return `<div class="person"><strong>${escapeHtml(r['Display Name'])}</strong><span>${escapeHtml(r['Title'] || '')}</span></div>`;
-}
-
-function employeeMarkup(r){
-  return `<div class="employee" draggable="true" data-id="${escapeHtml(r['Node ID'])}">
-    <strong>${escapeHtml(r['Display Name'])}</strong><span>${escapeHtml(r['Title'] || '')}</span>
+    </div>
+    <div>
+      <div class="slot-label">Crew</div>
+      <div class="dropzone" data-job="${jobAttr}" data-role="Crew">
+        ${crew.map(p => employeeMarkup(p, false)).join('') || '<div class="placeholder">Solo / no crew</div>'}
+      </div>
+    </div>
+    ${EDITOR ? `<div><button class="link-btn" data-remove="${jobAttr}">Remove from board</button></div>` : ''}
   </div>`;
 }
 
-function wireDropzones(){
-  document.querySelectorAll('.employee').forEach(card => {
-    card.addEventListener('dragstart', e => { dragId = card.dataset.id; e.dataTransfer.setData('text/plain', dragId); });
+function employeeMarkup(p, isLead){
+  return `<div class="employee${isLead ? ' lead' : ''}" draggable="${EDITOR ? 'true' : 'false'}" data-id="${escapeHtml(p.id)}">
+    <strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.title || '')}</span>
+  </div>`;
+}
+
+function renderToolbar(){
+  const bar = document.getElementById('toolbar');
+  const status = document.getElementById('status');
+  const statusText = status ? status.textContent : 'Loading board…';
+
+  bar.innerHTML = EDITOR
+    ? `<span class="who">Editing as ${escapeHtml(EDITOR)}</span>
+       <button class="primary" onclick="openAddJob()">+ Add Job</button>
+       <button class="secondary" onclick="openSettings()">Settings</button>
+       <button class="secondary" onclick="lockEditing()">Lock</button>
+       <span class="status" id="status"></span>`
+    : `<button class="primary" onclick="openUnlock()">🔒 Unlock to edit</button>
+       <span class="status" id="status"></span>`;
+  document.getElementById('status').textContent = statusText;
+}
+
+/* ---------- Drag / drop ---------- */
+
+function wireDragDrop(){
+  document.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => removeJob(btn.dataset.remove));
   });
-  document.querySelectorAll('.dropzone,.pool').forEach(zone => {
+  if (!EDITOR) return;
+
+  document.querySelectorAll('.employee').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragId = card.dataset.id;
+      e.dataTransfer.setData('text/plain', dragId);
+    });
+  });
+  document.querySelectorAll('.dropzone').forEach(zone => {
     zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
     zone.addEventListener('dragleave', () => zone.classList.remove('over'));
     zone.addEventListener('drop', e => {
       e.preventDefault();
       zone.classList.remove('over');
       const nodeId = e.dataTransfer.getData('text/plain') || dragId;
-      moveEmployee(nodeId, zone.dataset);
+      moveEmployee(nodeId, zone.dataset.job || '', zone.dataset.role || '');
     });
   });
 }
 
-function moveEmployee(nodeId, data){
-  const r = ORG_ROWS.find(x => x['Node ID'] === nodeId);
-  if (!r) return;
-  r['Parent ID'] = data.supervisor || data.zone || '';
-  r['Division'] = data.division || '';
-  r['Supervisor ID'] = data.supervisor || '';
-  r['Visual Group'] = data.zone || '';
-  if (data.zone === 'PART_TIME_INTERN') r['Employment Category'] = r['Employment Category'] || 'Part Time';
+function moveEmployee(nodeId, jobNo, role){
+  if (!EDITOR || busy || !nodeId) return;
+  const current = assignmentByPerson()[nodeId];
+  if (current && current.jobNo === jobNo && current.role === role) return;
+  if (!current && !jobNo) return;
+
+  // Show the move right away; the server's copy replaces it when the save returns.
+  BOARD.assignments = BOARD.assignments.filter(a => a.nodeId !== nodeId);
+  if (jobNo) {
+    if (role === 'Lead') {
+      BOARD.assignments.forEach(a => { if (a.jobNo === jobNo && a.role === 'Lead') a.role = 'Crew'; });
+    }
+    BOARD.assignments.push({jobNo, nodeId, role});
+  }
   render();
+
+  editApi('moveAssignment', {nodeId, jobNo, role}).catch(() => {});
 }
 
-let pendingAssignments = [];
-
-function saveAssignments(){
-  pendingAssignments = ORG_ROWS
-    .filter(isSaveableAssignment)
-    .map((r, i) => ({
-      nodeId: r['Node ID'],
-      parentId: r['Parent ID'] || '',
-      division: r['Division'] || '',
-      supervisorId: r['Supervisor ID'] || '',
-      visualGroup: r['Visual Group'] || '',
-      employmentCategory: r['Employment Category'] || '',
-      sort: i + 1
-    }));
-
-  openSaveModal();
+function removeJob(jobNo){
+  if (!EDITOR || busy) return;
+  BOARD.assignments = BOARD.assignments.filter(a => a.jobNo !== jobNo);
+  BOARD.jobs.forEach(j => { if (j.jobNo === jobNo) j.onBoard = false; });
+  render();
+  editApi('removeJob', {jobNo}).catch(() => {});
 }
 
-const LAST_EDITOR_KEY = 'cbpsOrgChartLastEditor';
+/* ---------- Unlock ---------- */
 
 function loadEditors(){
   const select = document.getElementById('modalEditor');
@@ -439,116 +444,192 @@ function loadEditors(){
 function fillEditorOptions(names){
   const select = document.getElementById('modalEditor');
   select.innerHTML = '';
-  const first = document.createElement('option');
-  first.value = '';
-  first.textContent = names.length ? 'Select your name' : 'No editors set up yet';
-  select.appendChild(first);
-  names.forEach(name => {
-    const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
+  select.appendChild(new Option(names.length ? 'Select your name' : 'No editors set up yet', ''));
+  names.forEach(name => select.appendChild(new Option(name, name)));
   let last = '';
   try { last = localStorage.getItem(LAST_EDITOR_KEY) || ''; } catch (e) {}
   if (last && names.includes(last)) select.value = last;
 }
 
-function openSaveModal(){
-  const modal = document.getElementById('saveModal');
+function openUnlock(){
   const select = document.getElementById('modalEditor');
   const pin = document.getElementById('modalPin');
-  const message = document.getElementById('modalMessage');
-
-  if (message) message.textContent = '';
-  if (pin) pin.value = '';
-  setModalBusy(false);
-  if (modal) modal.style.display = 'flex';
-
-  setTimeout(() => {
-    if (select && !select.value) select.focus();
-    else if (pin) pin.focus();
-  }, 50);
+  document.getElementById('unlockMessage').textContent = '';
+  pin.value = '';
+  setButtonBusy('unlockBtn', false, 'Unlock');
+  openModal('unlockModal');
+  setTimeout(() => { if (!select.value) select.focus(); else pin.focus(); }, 50);
 }
 
-function closeSaveModal(){
-  const modal = document.getElementById('saveModal');
-  if (modal) modal.style.display = 'none';
-}
-
-function setModalBusy(busy){
-  const btn = document.getElementById('modalSaveBtn');
-  if (btn) {
-    btn.disabled = busy;
-    btn.textContent = busy ? 'Checking…' : 'Save';
-  }
-}
-
-function confirmSave(){
+function confirmUnlock(){
   const select = document.getElementById('modalEditor');
   const pinInput = document.getElementById('modalPin');
-  const message = document.getElementById('modalMessage');
-  const editor = select ? select.value : '';
-  const pin = pinInput ? pinInput.value.trim() : '';
+  const message = document.getElementById('unlockMessage');
+  const editor = select.value;
+  const pin = pinInput.value.trim();
 
-  if (!editor) {
-    if (message) message.textContent = 'Select your name.';
-    if (select) select.focus();
-    return;
-  }
-  if (!pin) {
-    if (message) message.textContent = 'Enter your PIN.';
-    if (pinInput) pinInput.focus();
-    return;
-  }
+  if (!editor) { message.textContent = 'Select your name.'; select.focus(); return; }
+  if (!pin) { message.textContent = 'Enter your PIN.'; pinInput.focus(); return; }
 
   try { localStorage.setItem(LAST_EDITOR_KEY, editor); } catch (e) {}
+  message.textContent = '';
+  setButtonBusy('unlockBtn', true, 'Checking…');
 
-  if (message) message.textContent = '';
-  setModalBusy(true);
-  setStatus('Saving…');
-  callApi('saveAssignments', {editor, pin, assignments: pendingAssignments})
+  callApi('unlock', {editor, pin})
     .then(res => {
-      closeSaveModal();
-      const savedBy = res && res.savedBy ? res.savedBy : editor;
-      const savedAt = res && res.savedAt ? new Date(res.savedAt) : new Date();
-      setStatus(formatSavedStatus(savedBy, savedAt));
+      EDITOR = res.editor;
+      PIN = pin;
+      closeModal('unlockModal');
+      render();
     })
     .catch(err => {
-      setModalBusy(false);
-      if (pinInput) { pinInput.value = ''; pinInput.focus(); }
-      if (message) message.textContent = err.message;
-      setStatus('Save failed: ' + err.message);
+      setButtonBusy('unlockBtn', false, 'Unlock');
+      pinInput.value = '';
+      pinInput.focus();
+      message.textContent = err.message;
     });
 }
 
-function copyJson(){
-  copyText(JSON.stringify(ORG_ROWS, null, 2));
-  setStatus('Copied current layout JSON');
+function lockEditing(){
+  EDITOR = null;
+  PIN = null;
+  closeModal('jobModal');
+  closeModal('settingsModal');
+  render();
 }
 
-function copyText(text){
-  navigator.clipboard.writeText(text).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+/* ---------- Add job ---------- */
+
+function openAddJob(){
+  if (!EDITOR) return;
+  const pick = document.getElementById('jobPick');
+  pick.innerHTML = '';
+  pick.appendChild(new Option('Select a job…', ''));
+  BOARD.jobs
+    .filter(j => !j.onBoard)
+    .sort((a, b) => b.jobNo.localeCompare(a.jobNo, undefined, {numeric: true}))
+    .forEach(j => pick.appendChild(new Option([j.jobNo, j.customer, j.location].filter(Boolean).join(' — '), j.jobNo)));
+  pick.appendChild(new Option('+ New job (not in list)', '__new__'));
+
+  ['newJobNo', 'newJobCustomer', 'newJobLocation', 'newJobNotes'].forEach(id => { document.getElementById(id).value = ''; });
+  toggleNewJobFields();
+
+  const lead = document.getElementById('jobLead');
+  lead.innerHTML = '';
+  lead.appendChild(new Option('No lead yet', ''));
+  visiblePeopleSorted().forEach(p => lead.appendChild(new Option(p.name + currentSpotLabel(p.id), p.id)));
+
+  renderCrewChecklist();
+  document.getElementById('jobMessage').textContent = '';
+  setButtonBusy('jobSaveBtn', false, 'Save Job');
+  openModal('jobModal');
+}
+
+function toggleNewJobFields(){
+  const isNew = document.getElementById('jobPick').value === '__new__';
+  document.getElementById('newJobFields').style.display = isNew ? 'block' : 'none';
+}
+
+function renderCrewChecklist(){
+  const leadId = document.getElementById('jobLead').value;
+  const box = document.getElementById('jobCrew');
+  const checked = new Set(Array.from(box.querySelectorAll('input:checked')).map(i => i.value));
+  box.innerHTML = visiblePeopleSorted()
+    .filter(p => p.id !== leadId)
+    .map(p => `<label class="check-row">
+        <input type="checkbox" value="${escapeHtml(p.id)}" ${checked.has(p.id) ? 'checked' : ''}>
+        <span>${escapeHtml(p.name)}<small>${escapeHtml(p.title || '')}${escapeHtml(currentSpotLabel(p.id))}</small></span>
+      </label>`)
+    .join('');
+}
+
+function confirmAddJob(){
+  const message = document.getElementById('jobMessage');
+  const pick = document.getElementById('jobPick').value;
+  const isNew = pick === '__new__';
+  const job = isNew
+    ? {
+        jobNo: document.getElementById('newJobNo').value.trim(),
+        customer: document.getElementById('newJobCustomer').value.trim(),
+        location: document.getElementById('newJobLocation').value.trim(),
+        notes: document.getElementById('newJobNotes').value.trim()
+      }
+    : {jobNo: pick};
+
+  if (!pick) { message.textContent = 'Select a job.'; return; }
+  if (isNew && !job.jobNo) { message.textContent = 'Enter the Job #.'; return; }
+  if (isNew && !job.customer) { message.textContent = 'Enter the customer.'; return; }
+
+  const leadId = document.getElementById('jobLead').value;
+  const crewIds = Array.from(document.querySelectorAll('#jobCrew input:checked')).map(i => i.value);
+
+  message.textContent = '';
+  setButtonBusy('jobSaveBtn', true, 'Saving…');
+  editApi('saveJob', {job, isNew, leadId, crewIds})
+    .then(() => closeModal('jobModal'))
+    .catch(err => {
+      setButtonBusy('jobSaveBtn', false, 'Save Job');
+      message.textContent = err.message;
+    });
+}
+
+function visiblePeopleSorted(){
+  return BOARD.people.filter(p => p.visible).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function currentSpotLabel(nodeId){
+  const a = assignmentByPerson()[nodeId];
+  return a ? ' · now on ' + a.jobNo + (a.role === 'Lead' ? ' (Lead)' : '') : '';
+}
+
+/* ---------- Settings ---------- */
+
+function openSettings(){
+  if (!EDITOR) return;
+  document.getElementById('settingsMessage').textContent = '';
+  renderVisibilityList();
+  openModal('settingsModal');
+}
+
+function renderVisibilityList(){
+  const list = document.getElementById('visibilityList');
+  list.innerHTML = BOARD.people
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(p => `<label class="check-row">
+        <input type="checkbox" data-person="${escapeHtml(p.id)}" ${p.visible ? 'checked' : ''}>
+        <span>${escapeHtml(p.name)}<small>${escapeHtml(p.title || '')}</small></span>
+      </label>`)
+    .join('');
+  list.querySelectorAll('input[data-person]').forEach(box => {
+    box.addEventListener('change', () => setVisibility(box));
   });
 }
 
-function isSaveableAssignment(r){
-  return r['Node Type'] === 'Person';
+function setVisibility(box){
+  const message = document.getElementById('settingsMessage');
+  const nodeId = box.dataset.person;
+  const visible = box.checked;
+  message.textContent = '';
+  document.querySelectorAll('#visibilityList input').forEach(i => { i.disabled = true; });
+
+  editApi('setVisibility', {nodeId, visible})
+    .then(() => renderVisibilityList())
+    .catch(err => {
+      message.textContent = err.message;
+      renderVisibilityList();
+    });
 }
 
-function isFieldEmployee(r){
-  const group = String(r['Org Group'] || '');
-  return group.includes('Field') || ['UNASSIGNED','PART_TIME_INTERN'].includes(zoneOf(r));
-}
+/* ---------- Helpers ---------- */
 
-function isLead(r){
-  return [...LEADS.commercial, ...LEADS.residential].includes(String(r['Node ID']));
-}
+function openModal(id){ document.getElementById(id).style.display = 'flex'; }
+function closeModal(id){ document.getElementById(id).style.display = 'none'; }
 
-function zoneOf(r){
-  return String(r['Visual Group'] || r['Parent ID'] || '').trim();
+function setButtonBusy(id, isBusy, text){
+  const btn = document.getElementById(id);
+  btn.disabled = isBusy;
+  btn.textContent = text;
 }
 
 function escapeHtml(str){
@@ -568,7 +649,10 @@ function formatLastSaveStatus(lastSave){
   return formatSavedStatus(lastSave.savedBy, savedAt);
 }
 
-function setStatus(msg){ document.getElementById('status').textContent = msg; }
+function setStatus(msg){
+  const el = document.getElementById('status');
+  if (el) el.textContent = msg;
+}
 
 // Auto-scroll while dragging near the top/bottom edge (phones can't scroll mid-drag).
 const DRAG_EDGE = 100;
@@ -598,6 +682,7 @@ document.addEventListener('dragover', e => { dragY = e.clientY; });
 document.addEventListener('dragend', stopDragScroll);
 document.addEventListener('drop', stopDragScroll);
 
+render();
 reloadData();
 loadEditors();
 </script>
