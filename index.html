@@ -134,6 +134,9 @@
     .ctx-item:hover{background:#e9fbfd}
     .ctx-item b{color:var(--navy);margin-right:4px}
     .ctx-empty{font-size:13px;color:var(--muted);padding:8px}
+    .ctx-unassign{color:var(--danger);font-weight:800;border-bottom:1px solid #eef2f6;border-radius:8px 8px 0 0}
+    .ctx-unassign:hover{background:#fde8e7}
+    #splitAskText{font-size:16px;color:var(--text);font-weight:700}
     .check-row small{display:block;color:var(--muted);font-size:12px}
 
     .version-footer{max-width:1500px;margin:0 auto 24px;padding:10px 12px;color:var(--muted);font-size:12px;text-align:center}
@@ -205,7 +208,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.8.6
+    CBPS Whiteboard — v0.8.8
   </footer>
 
   <!-- Unlock -->
@@ -257,6 +260,18 @@
         <button class="primary" id="jobSaveBtn" onclick="confirmJobModal()">Save Job</button>
       </div>
       <div id="jobMessage" class="modal-message"></div>
+    </div>
+  </div>
+
+  <!-- Drag onto a different job: split or move? -->
+  <div id="splitAskModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <h3>Split?</h3>
+      <p id="splitAskText"></p>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeModal('splitAskModal')">No</button>
+        <button class="primary" id="splitAskYes">Yes</button>
+      </div>
     </div>
   </div>
 
@@ -525,7 +540,8 @@ function wireDragDrop(){
     card.addEventListener('contextmenu', e => {
       e.preventDefault();
       e.stopPropagation();
-      openSplitMenu(card.dataset.id, e.clientX, e.clientY);
+      const onJob = card.closest('.job');
+      openSplitMenu(card.dataset.id, onJob ? onJob.dataset.job : '', e.clientX, e.clientY);
     });
     card.addEventListener('dragstart', e => {
       dragId = card.dataset.id;
@@ -561,9 +577,27 @@ function wireDragDrop(){
       e.preventDefault();
       const zone = zoneFor(e);
       clearOver();
-      moveEmployee(e.dataTransfer.getData('text/plain') || dragId, dragFromJob, zone.dataset.job || '', zone.dataset.role || '');
+      dropEmployee(e.dataTransfer.getData('text/plain') || dragId, dragFromJob, zone.dataset.job || '', zone.dataset.role || '');
     });
   });
+}
+
+// Dropping a card that came from one job onto a different job asks "Split?": Yes = on both jobs, No = leave as is.
+// From Unassigned, to Unassigned, or within the same job: no question.
+function dropEmployee(nodeId, fromJob, jobNo, role){
+  if (!fromJob || !jobNo || fromJob === jobNo) {
+    moveEmployee(nodeId, fromJob, jobNo, role);
+    return;
+  }
+  if (BOARD.assignments.some(a => a.nodeId === nodeId && a.jobNo === jobNo)) {
+    moveEmployee(nodeId, fromJob, jobNo, role);   // already on the target job: just a move
+    return;
+  }
+  const person = peopleById()[nodeId];
+  document.getElementById('splitAskText').textContent =
+    (person ? person.name : 'This person') + ' is assigned to ' + fromJob + '. Split?';
+  document.getElementById('splitAskYes').onclick = () => { closeModal('splitAskModal'); moveEmployee(nodeId, '', jobNo, role); };
+  openModal('splitAskModal');
 }
 
 // Drag = move one placement: off fromJob ('' = from Unassigned) and onto jobNo ('' = to Unassigned).
@@ -589,7 +623,7 @@ function moveEmployee(nodeId, fromJob, jobNo, role){
 }
 
 // Right-click menu: lists active jobs this person isn't on yet. Picking one adds them there as Crew.
-function openSplitMenu(nodeId, x, y){
+function openSplitMenu(nodeId, fromJob, x, y){
   if (!isEditing() || busy) return;
   const person = peopleById()[nodeId];
   if (!person) return;
@@ -597,7 +631,9 @@ function openSplitMenu(nodeId, x, y){
   const jobs = jobsOnBoard().filter(j => !onJobs.has(j.jobNo));
   const menu = document.getElementById('splitMenu');
 
-  menu.innerHTML = `<div class="ctx-title">${onJobs.size ? 'Split' : 'Add'} ${escapeHtml(person.name)} to job:</div>` +
+  menu.innerHTML =
+    (fromJob ? `<button class="ctx-item ctx-unassign" data-unassign="1">✕ Unassign from ${escapeHtml(fromJob)}</button>` : '') +
+    `<div class="ctx-title">${onJobs.size ? 'Split' : 'Add'} ${escapeHtml(person.name)} to job:</div>` +
     (jobs.length
       ? jobs.map(j => `<button class="ctx-item" data-job="${escapeHtml(j.jobNo)}"><b>${escapeHtml(j.jobNo)}</b> ${escapeHtml(j.customer)}</button>`).join('')
       : '<div class="ctx-empty">Already on every active job.</div>');
@@ -606,6 +642,11 @@ function openSplitMenu(nodeId, x, y){
       closeSplitMenu();
       moveEmployee(nodeId, '', btn.dataset.job, 'Crew');
     });
+  });
+  const unassign = menu.querySelector('[data-unassign]');
+  if (unassign) unassign.addEventListener('click', () => {
+    closeSplitMenu();
+    moveEmployee(nodeId, fromJob, '', '');
   });
 
   menu.style.display = 'block';
@@ -620,7 +661,7 @@ function closeSplitMenu(){
 
 document.addEventListener('click', e => { if (!e.target.closest('#splitMenu')) closeSplitMenu(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSplitMenu(); });
-window.addEventListener('scroll', closeSplitMenu, true);
+window.addEventListener('scroll', e => { if (!(e.target.closest && e.target.closest('#splitMenu'))) closeSplitMenu(); }, true);
 
 // Popup saves: wait for the result, block drags meanwhile.
 function popupEdit(action, body, btnId, btnText, messageId, modalId){
