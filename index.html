@@ -297,7 +297,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Org Chart Admin — v0.6.0
+    CBPS Org Chart Admin — v0.6.1
   </footer>
 
 <script>
@@ -569,6 +569,34 @@ function formatLastSaveStatus(lastSave){
 }
 
 function setStatus(msg){ document.getElementById('status').textContent = msg; }
+
+// Auto-scroll while dragging near the top/bottom edge (phones can't scroll mid-drag).
+const DRAG_EDGE = 100;
+const DRAG_SCROLL_SPEED = 14;
+let dragY = null;
+let dragScrollFrame = null;
+
+function dragScrollLoop(){
+  if (dragY !== null) {
+    if (dragY < DRAG_EDGE) window.scrollBy(0, -DRAG_SCROLL_SPEED);
+    else if (dragY > window.innerHeight - DRAG_EDGE) window.scrollBy(0, DRAG_SCROLL_SPEED);
+  }
+  dragScrollFrame = requestAnimationFrame(dragScrollLoop);
+}
+
+function stopDragScroll(){
+  dragY = null;
+  if (dragScrollFrame) cancelAnimationFrame(dragScrollFrame);
+  dragScrollFrame = null;
+}
+
+document.addEventListener('dragstart', () => {
+  dragY = null;
+  if (!dragScrollFrame) dragScrollFrame = requestAnimationFrame(dragScrollLoop);
+});
+document.addEventListener('dragover', e => { dragY = e.clientY; });
+document.addEventListener('dragend', stopDragScroll);
+document.addEventListener('drop', stopDragScroll);
 
 reloadData();
 loadEditors();
