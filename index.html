@@ -156,7 +156,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.7.1
+    CBPS Whiteboard — v0.7.2
   </footer>
 
   <!-- Unlock -->
@@ -338,7 +338,7 @@ function jobMarkup(job, people){
     .sort((a, b) => a.name.localeCompare(b.name));
   const jobAttr = escapeHtml(job.jobNo);
 
-  return `<div class="job">
+  return `<div class="job" data-job="${jobAttr}">
     <div>
       <div class="job-no">${escapeHtml(job.jobNo)}</div>
       <div class="job-customer">${escapeHtml(job.customer)}</div>
@@ -402,14 +402,32 @@ function wireDragDrop(){
       e.dataTransfer.setData('text/plain', dragId);
     });
   });
-  document.querySelectorAll('.dropzone').forEach(zone => {
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('over'));
-    zone.addEventListener('drop', e => {
+  // Whole job card / whole Unassigned panel accept drops. Over the Lead box = Lead, anywhere else on a card = Crew.
+  document.querySelectorAll('.job, .unassigned-panel').forEach(target => {
+    if (target.dataset.wired) return; // Unassigned panel isn't re-rendered; wire it once.
+    target.dataset.wired = '1';
+
+    const zoneFor = e => target.classList.contains('job')
+      ? (e.target.closest('.lead-zone') || target.querySelector('.dropzone[data-role="Crew"]'))
+      : target.querySelector('.dropzone');
+    const clearOver = () => target.querySelectorAll('.dropzone.over').forEach(z => z.classList.remove('over'));
+
+    target.addEventListener('dragover', e => {
+      if (!EDITOR) return;
       e.preventDefault();
-      zone.classList.remove('over');
-      const nodeId = e.dataTransfer.getData('text/plain') || dragId;
-      moveEmployee(nodeId, zone.dataset.job || '', zone.dataset.role || '');
+      const zone = zoneFor(e);
+      target.querySelectorAll('.dropzone.over').forEach(z => { if (z !== zone) z.classList.remove('over'); });
+      zone.classList.add('over');
+    });
+    target.addEventListener('dragleave', e => {
+      if (!target.contains(e.relatedTarget)) clearOver();
+    });
+    target.addEventListener('drop', e => {
+      if (!EDITOR) return;
+      e.preventDefault();
+      const zone = zoneFor(e);
+      clearOver();
+      moveEmployee(e.dataTransfer.getData('text/plain') || dragId, zone.dataset.job || '', zone.dataset.role || '');
     });
   });
 }
