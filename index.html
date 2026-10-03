@@ -49,6 +49,15 @@
     button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;font-size:14px}
     button:disabled{opacity:.55;cursor:default}
     .primary{background:var(--navy);color:white}
+    .save-chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 18px;font-size:16px;font-weight:800;border:2px solid}
+    .save-chip.saved{background:#e7f8ee;border-color:#2e9e5b;color:#17663a}
+    .save-chip.saving{background:#fff4d6;border-color:#f5b100;color:#7a5200}
+    .save-chip.failed{background:#fde8e7;border-color:var(--danger);color:var(--danger)}
+    .chip-icon{font-size:18px;line-height:1;display:inline-block}
+    .chip-icon.spin{animation:spin 1s linear infinite}
+    .save-chip.pulse{animation:pulse .7s ease-out}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,158,91,.55)}100%{box-shadow:0 0 0 14px rgba(46,158,91,0)}}
     .secondary{background:white;color:var(--navy);border:1px solid var(--line)}
     .link-btn{background:none;border:0;color:var(--muted);font-size:12px;font-weight:700;padding:6px 0;text-decoration:underline}
 
@@ -174,7 +183,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.8.1
+    CBPS Whiteboard — v0.8.2
   </footer>
 
   <!-- Unlock -->
@@ -280,6 +289,7 @@ let busy = false;         // a popup save is running; drags wait
 let pending = 0;          // queued saves not finished yet
 let editCounter = 0;      // bumps on every edit so a stale background refresh is ignored
 let saveQueue = Promise.resolve();
+let saveFailed = false;   // last save failed; cleared by the next good save
 let dragId = null;
 let dragging = false;
 let adminOpen = false;
@@ -311,6 +321,7 @@ function queueEdit(action, body){
 
   return run
     .then(data => {
+      saveFailed = false;
       if (data && data.people) {
         BOARD = data;
         render();
@@ -320,13 +331,14 @@ function queueEdit(action, body){
       return data;
     })
     .catch(err => {
+      saveFailed = true;
       if (/Session expired|PIN|Too many/.test(err.message)) logout();
       setStatus('Save failed: ' + err.message);
       throw err;
     })
     .finally(() => {
       pending--;
-      updateSaveButton();
+      updateSaveButton(true);
       if (pending === 0) {
         if (!/^Save failed/.test(currentStatus())) setStatus(formatLastSaveStatus(BOARD.lastSave) || 'Saved');
         quietRefresh();
@@ -447,7 +459,7 @@ function employeeMarkup(p, isLead){
 function renderToolbar(){
   const bar = document.getElementById('toolbar');
   const statusText = currentStatus() || 'Loading board…';
-  bar.innerHTML = isEditing() ? '<button class="primary" id="saveBtn" onclick="saveAll()">Save</button>' : '';
+  bar.innerHTML = isEditing() ? '<button class="save-chip" id="saveBtn" onclick="saveAll()"></button>' : '';
   bar.insertAdjacentHTML('beforeend', '<span class="status" id="status"></span>');
   document.getElementById('status').textContent = statusText;
   updateSaveButton();
@@ -584,20 +596,33 @@ function confirmUnlock(){
     });
 }
 
-// Save = wait for any background saves to finish and confirm. You stay logged in and editing.
+// Tapping the chip = wait for any background saves to finish and confirm. You stay logged in and editing.
 function saveAll(){
-  if (pending) setStatus('Saving…');
   saveQueue.then(() => {
-    if (/^Save failed/.test(currentStatus())) return;
+    if (saveFailed) return;
     const last = formatLastSaveStatus(BOARD.lastSave);
-    setStatus('All changes saved ✓' + (last ? ' · ' + last : ''));
+    setStatus('All changes saved' + (last ? ' · ' + last : ''));
+    updateSaveButton(true);
   });
 }
 
-// Shows how many changes are still sending.
-function updateSaveButton(){
+// One status chip: amber while sending, green when everything is in, red if a save failed.
+// Tapping it does what Save did. pulse = flash green when a save just landed.
+function updateSaveButton(pulse){
   const btn = document.getElementById('saveBtn');
-  if (btn) btn.textContent = pending ? 'Saving… (' + pending + ')' : 'Save';
+  if (!btn) return;
+  const state = pending ? 'saving' : (saveFailed ? 'failed' : 'saved');
+  btn.className = 'save-chip ' + state;
+  btn.innerHTML = state === 'saving'
+    ? '<span class="chip-icon spin">⟳</span> Saving…'
+    : state === 'failed'
+      ? '<span class="chip-icon">⚠</span> Not saved'
+      : '<span class="chip-icon">✓</span> Saved';
+  if (pulse && state === 'saved') {
+    btn.classList.remove('pulse');
+    void btn.offsetWidth;
+    btn.classList.add('pulse');
+  }
 }
 
 // Warn before closing/refreshing while changes are still sending.
