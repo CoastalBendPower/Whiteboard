@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Whiteboard</title>
+  <title>WhiteBoard</title>
   <link rel="icon" href="assets/icon-192.png">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <style>
@@ -170,8 +170,9 @@
     :root{--navy:#123f73;--navy2:#0b2a4e;--teal:#009dff;--line:#d8e0ea;--text:#1f2933;--muted:#64748b;--soft:#f4f8fc}
     body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#f3f6fa 0%,#eef2f6 45%,#f7f9fb 100%)}
     header{background:radial-gradient(circle at 85% 20%,rgba(0,157,255,.22),transparent 40%),linear-gradient(135deg,#061226 0%,#0b2a4e 60%,#123f73 100%);border-bottom:3px solid #009dff;box-shadow:0 10px 28px rgba(15,23,42,.18)}
-    h1{font-size:28px;font-weight:900;letter-spacing:-.02em}
-    h1::after{content:"";display:block;width:110px;height:3px;margin-top:6px;border-radius:999px;background:linear-gradient(90deg,#009dff,transparent)}
+    .site-title{margin:0;font-size:38px;line-height:1;font-weight:950;letter-spacing:-.05em;color:white;text-shadow:0 2px 12px rgba(0,0,0,.45)}
+    .site-title .title-hub{color:#009dff;text-shadow:0 0 14px rgba(0,157,255,.48)}
+    .site-title::after{content:"";display:block;width:150px;height:3px;margin-top:8px;border-radius:999px;background:linear-gradient(90deg,transparent,#009dff,transparent)}
     .logo{width:64px;height:64px;padding:0;background:none}
     .ph-home{width:62px;height:62px;border-radius:0;overflow:visible;box-shadow:none}
     .ph-home img{object-fit:contain}
@@ -202,8 +203,8 @@
     .settings-tab.active{color:var(--navy2)}
     .ctx-item:hover{background:#e6f5ff}
     @media(max-width:950px){
-      h1{font-size:22px}
-      h1::after{width:80px}
+      .site-title{font-size:28px}
+      .site-title::after{width:110px}
       .logo{width:52px;height:52px}
       .ph-home{width:50px;height:50px}
       .header-btn.solid{padding:13px 20px;font-size:16px}
@@ -217,7 +218,7 @@
       <div class="header-brand">
         <img class="logo" src="assets/CBPS_NB.png" alt="Coastal Bend Power Services">
         <div>
-          <h1>Whiteboard</h1>
+          <h1 class="site-title">White<span class="title-hub">Board</span></h1>
         </div>
       </div>
       <div class="header-right">
@@ -254,7 +255,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.8.12
+    CBPS Whiteboard — v0.8.13
   </footer>
 
   <!-- Unlock -->
