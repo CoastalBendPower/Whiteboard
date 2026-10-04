@@ -208,7 +208,7 @@
   </main>
 
   <footer class="version-footer">
-    CBPS Whiteboard — v0.8.8
+    CBPS Whiteboard — v0.8.9
   </footer>
 
   <!-- Unlock -->
@@ -269,7 +269,7 @@
       <h3>Split?</h3>
       <p id="splitAskText"></p>
       <div class="modal-actions">
-        <button class="secondary" onclick="closeModal('splitAskModal')">No</button>
+        <button class="secondary" id="splitAskNo">No</button>
         <button class="primary" id="splitAskYes">Yes</button>
       </div>
     </div>
@@ -582,7 +582,7 @@ function wireDragDrop(){
   });
 }
 
-// Dropping a card that came from one job onto a different job asks "Split?": Yes = on both jobs, No = leave as is.
+// Dropping a card that came from one job onto a different job asks "Split?": Yes = on both jobs, No = move.
 // From Unassigned, to Unassigned, or within the same job: no question.
 function dropEmployee(nodeId, fromJob, jobNo, role){
   if (!fromJob || !jobNo || fromJob === jobNo) {
@@ -597,6 +597,7 @@ function dropEmployee(nodeId, fromJob, jobNo, role){
   document.getElementById('splitAskText').textContent =
     (person ? person.name : 'This person') + ' is assigned to ' + fromJob + '. Split?';
   document.getElementById('splitAskYes').onclick = () => { closeModal('splitAskModal'); moveEmployee(nodeId, '', jobNo, role); };
+  document.getElementById('splitAskNo').onclick = () => { closeModal('splitAskModal'); moveEmployee(nodeId, fromJob, jobNo, role); };
   openModal('splitAskModal');
 }
 
