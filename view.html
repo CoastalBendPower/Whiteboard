@@ -82,7 +82,7 @@
 
     @media(max-width:600px){
       .sheet{margin:0;border-radius:0;border:0;padding:16px}
-      .top{padding-right:112px}
+      .top{padding-right:128px}
       .corner{top:14px;right:14px}
       .logo{width:48px;height:48px}
       .top h1{font-size:18px}
@@ -105,7 +105,8 @@
     .lead .name{color:var(--navy2)}
     .notes{border-left:3px solid #f5b100}
     .edit-btn{background:linear-gradient(135deg,#0b2a4e,#123f73);box-shadow:0 0 0 2px rgba(0,157,255,.35),0 4px 12px rgba(16,50,90,.25)}
-    .ph-home{box-shadow:0 0 0 2px rgba(0,157,255,.35),0 4px 12px rgba(16,50,90,.25)}
+    .ph-home{width:56px;height:56px;border-radius:0;overflow:visible;box-shadow:none}
+    .ph-home img{object-fit:contain}
     .available{border-radius:16px;border-color:#c7d4e3}
     .chip{border-color:#d8e0ea;background:#f4f8fc;color:var(--navy2)}
     @page{size:landscape;margin:10mm}
@@ -120,7 +121,7 @@
 <body>
   <div class="sheet">
     <div class="top">
-      <img class="logo" src="assets/button_CBPS_Site_round_300.png" alt="Coastal Bend Power Services">
+      <img class="logo" src="assets/CBPS_NB.png" alt="Coastal Bend Power Services">
       <div>
         <h1>Coastal Bend Power Services, LLC <span class="draft">DRAFT</span></h1>
         <div class="sub">Crew Assignments</div>
@@ -129,13 +130,13 @@
     </div>
 
     <div class="corner">
-      <a class="ph-home" href="https://coastalbendpower.github.io/PowerHub/" title="Back to PowerHub" aria-label="Back to PowerHub"><img src="assets/icon-192.png" alt="PowerHub"></a>
+      <a class="ph-home" href="https://coastalbendpower.github.io/PowerHub/" title="Back to PowerHub" aria-label="Back to PowerHub"><img src="assets/button_Return_to_PowerHub_round_300.png" alt="Return to PowerHub"></a>
       <button class="edit-btn" id="editBtn" type="button" onclick="openEditor()" title="Editors: unlock to edit" aria-label="Unlock to edit"></button>
     </div>
 
     <div id="chart"><div class="message">Loading crew assignments…</div></div>
   </div>
-  <div class="footer">CBPS Crew Assignments — v0.8.11 · View only</div>
+  <div class="footer">CBPS Crew Assignments — v0.8.12 · View only</div>
 
   <div class="modal-backdrop" id="pinModal">
     <div class="modal-card">
