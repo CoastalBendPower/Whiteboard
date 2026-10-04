@@ -52,6 +52,7 @@
     .root{background:var(--navy);color:white;border-radius:12px;padding:10px 22px;font-weight:900;font-size:16px;text-align:center}
     .root small{display:block;font-weight:700;opacity:.85;font-size:12px;margin-top:2px}
     .stem{width:2px;height:18px;background:var(--line)}
+    .job-count{margin:18px 2px 8px;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.055em}
     .jobs{border-top:2px solid var(--line);padding-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px 14px}
 
     .job{position:relative;border:2px solid var(--navy);border-radius:12px;overflow:hidden;break-inside:avoid;background:white}
@@ -145,7 +146,7 @@
 
     <div id="chart"><div class="message">Loading crew assignments…</div></div>
   </div>
-  <div class="footer">CBPS Crew Assignments — v0.8.13 · View only</div>
+  <div class="footer">CBPS Crew Assignments — v0.8.14 · View only</div>
 
   <div class="modal-backdrop" id="pinModal">
     <div class="modal-card">
@@ -270,10 +271,7 @@ function render(board){
     .sort((a, b) => a.name.localeCompare(b.name));
 
   document.getElementById('chart').innerHTML = jobs.length
-    ? `<div class="root-wrap">
-         <div class="root">Field Operations<small>${jobs.length} active job${jobs.length === 1 ? '' : 's'}</small></div>
-         <div class="stem"></div>
-       </div>
+    ? `<div class="job-count">${jobs.length} active job${jobs.length === 1 ? '' : 's'}</div>
        <div class="jobs">${jobHtml}</div>
        ${available.length ? `<div class="available">
          <h3>Available / Unassigned (${available.length})</h3>
