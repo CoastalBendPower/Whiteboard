@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>CBPS Crew Assignments</title>
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <style>
     :root{
       --navy:#123f73;
@@ -87,6 +89,25 @@
       .edit-btn{top:14px;right:14px}
     }
 
+
+    /* ---------- PowerHub theme (cosmetic only) ---------- */
+    :root{--navy:#123f73;--navy2:#0b2a4e;--teal:#009dff;--line:#d8e0ea;--text:#1f2933;--muted:#64748b}
+    body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#f3f6fa 0%,#eef2f6 45%,#f7f9fb 100%)}
+    .sheet{border:1px solid rgba(216,224,234,.72);border-radius:22px;box-shadow:0 10px 28px rgba(15,23,42,.10)}
+    .top{border-bottom:3px solid #009dff}
+    .logo{border:0;padding:0;background:none}
+    .top h1{font-weight:900;letter-spacing:-.02em;color:var(--navy2)}
+    .top .sub{text-transform:uppercase;letter-spacing:.055em;font-size:13px;color:var(--navy)}
+    .root{background:linear-gradient(135deg,#0b2a4e,#123f73);border-radius:14px;box-shadow:0 6px 14px rgba(15,23,42,.15)}
+    .job{border:1px solid rgba(216,224,234,.9);border-radius:16px;box-shadow:0 6px 16px rgba(15,23,42,.07)}
+    .job-head{background:linear-gradient(135deg,#0b2a4e,#123f73);border-bottom:3px solid #009dff}
+    .lead{background:#f4f8fc}
+    .lead .name{color:var(--navy2)}
+    .notes{border-left:3px solid #f5b100}
+    .edit-btn{background:linear-gradient(135deg,#0b2a4e,#123f73);box-shadow:0 0 0 2px rgba(0,157,255,.35),0 4px 12px rgba(16,50,90,.25)}
+    .ph-home{box-shadow:0 0 0 2px rgba(0,157,255,.35),0 4px 12px rgba(16,50,90,.25)}
+    .available{border-radius:16px;border-color:#c7d4e3}
+    .chip{border-color:#d8e0ea;background:#f4f8fc;color:var(--navy2)}
     @page{size:landscape;margin:10mm}
     @media print{
       body{background:white}
@@ -99,7 +120,7 @@
 <body>
   <div class="sheet">
     <div class="top">
-      <img class="logo" src="https://drive.google.com/thumbnail?id=1vBuXxTwkTToVzAmDnBU6y_zb7KnnnIVT&sz=w240" alt="CBPS Logo">
+      <img class="logo" src="assets/button_CBPS_Site_round_300.png" alt="Coastal Bend Power Services">
       <div>
         <h1>Coastal Bend Power Services, LLC <span class="draft">DRAFT</span></h1>
         <div class="sub">Crew Assignments</div>
@@ -108,13 +129,13 @@
     </div>
 
     <div class="corner">
-      <a class="ph-home" href="https://coastalbendpower.github.io/PowerHub/" title="Back to PowerHub" aria-label="Back to PowerHub"><img src="https://drive.google.com/thumbnail?id=1Lnf2-p068Z0K-5AScCj2qxQis0TEzY_W&sz=w200" alt="PowerHub"></a>
+      <a class="ph-home" href="https://coastalbendpower.github.io/PowerHub/" title="Back to PowerHub" aria-label="Back to PowerHub"><img src="assets/icon-192.png" alt="PowerHub"></a>
       <button class="edit-btn" id="editBtn" type="button" onclick="openEditor()" title="Editors: unlock to edit" aria-label="Unlock to edit"></button>
     </div>
 
     <div id="chart"><div class="message">Loading crew assignments…</div></div>
   </div>
-  <div class="footer">CBPS Crew Assignments — v0.8.5 · View only</div>
+  <div class="footer">CBPS Crew Assignments — v0.8.11 · View only</div>
 
   <div class="modal-backdrop" id="pinModal">
     <div class="modal-card">
