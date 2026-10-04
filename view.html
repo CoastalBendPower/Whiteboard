@@ -97,9 +97,9 @@
     .sheet{border:1px solid rgba(216,224,234,.72);border-radius:22px;box-shadow:0 10px 28px rgba(15,23,42,.10)}
     .top{background:radial-gradient(circle at 85% 20%,rgba(0,157,255,.22),transparent 40%),linear-gradient(135deg,#061226 0%,#0b2a4e 60%,#123f73 100%);border-radius:16px;border-bottom:3px solid #009dff;padding:14px 18px;padding-right:150px}
     .top .meta{color:rgba(255,255,255,.78);margin-top:6px}
-    .site-title{margin:0;font-size:38px;line-height:1;font-weight:950;letter-spacing:-.05em;color:white;text-shadow:0 2px 12px rgba(0,0,0,.45)}
-    .site-title .title-hub{color:#009dff;text-shadow:0 0 14px rgba(0,157,255,.48)}
-    .site-title::after{content:"";display:block;width:150px;height:3px;margin-top:8px;border-radius:999px;background:linear-gradient(90deg,transparent,#009dff,transparent)}
+    .top .site-title{margin:0;font-size:46px;line-height:.95;font-weight:950;letter-spacing:-.055em;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.55)}
+    .top .site-title .title-hub{color:#009dff;text-shadow:0 0 14px rgba(0,157,255,.48)}
+    .top .site-title::after{content:"";display:block;width:150px;height:3px;margin-top:8px;border-radius:999px;background:linear-gradient(90deg,transparent,#009dff,transparent)}
     .corner{top:36px;right:40px}
     .logo{border:0;padding:0;background:none}
     .top .sub{text-transform:uppercase;letter-spacing:.055em;font-size:13px;color:var(--navy)}
@@ -116,8 +116,8 @@
     .chip{border-color:#d8e0ea;background:#f4f8fc;color:var(--navy2)}
     @media(max-width:600px){
       .top{padding:12px 14px;padding-right:128px}
-      .site-title{font-size:28px}
-      .site-title::after{width:110px}
+      .top .site-title{font-size:32px}
+      .top .site-title::after{width:110px}
       .corner{top:26px;right:26px}
     }
     @page{size:landscape;margin:10mm}
@@ -135,7 +135,6 @@
       <img class="logo" src="assets/CBPS_NB.png" alt="Coastal Bend Power Services">
       <div>
         <h1 class="site-title">White<span class="title-hub">Board</span></h1>
-        <div class="meta" id="meta">Loading…</div>
       </div>
     </div>
 
@@ -146,7 +145,7 @@
 
     <div id="chart"><div class="message">Loading crew assignments…</div></div>
   </div>
-  <div class="footer">CBPS Crew Assignments — v0.8.14 · View only</div>
+  <div class="footer"><span id="meta">Loading…</span><br>WhiteBoard — v0.8.16 · View only</div>
 
   <div class="modal-backdrop" id="pinModal">
     <div class="modal-card">
