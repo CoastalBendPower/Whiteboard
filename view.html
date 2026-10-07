@@ -47,6 +47,18 @@
     .jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
     .job{position:relative;display:flex;flex-direction:column;gap:10px;padding:12px;background:rgba(255,255,255,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(216,224,234,.9);border-top:4px solid #009dff;border-radius:22px;transition:transform .15s,border-color .15s;break-inside:avoid}
     .job:hover{transform:translateY(-2px);border-color:rgba(0,157,255,.55)}
+    .jobs{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+    .job{padding:10px 12px;gap:6px}
+    .job-head{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:8px;align-items:baseline}
+    .job-head .job-customer{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+    .job-head .job-loc{grid-column:1/-1;margin:0;font-weight:600}
+    .lead,.crew li{padding:3px 8px;border-radius:8px;box-shadow:none}
+    .lead .name,.crew li{font-size:13.5px}
+    .crew ul{gap:3px}
+    .lead .name,.crew li{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+    .crew li .person-title,.lead .person-title{display:inline;font-size:11.5px}
+    .lead{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px}
+    .lead .label{width:100%;margin:0}
     .job-no{display:block;font-size:22px;font-weight:950;letter-spacing:-.03em;color:var(--navy2)}
     .job-customer{font-size:13px;font-weight:700;color:var(--muted);line-height:1.3;margin-top:2px}
     .job-loc{font-size:12px;color:var(--muted);margin-top:1px}
@@ -63,6 +75,47 @@
     .job.dim{opacity:.45}
     mark.me{background:#fff4d6;color:inherit;border-radius:4px;padding:0 3px;box-shadow:0 0 0 1px #f5b100}
 
+    /* Dense viewing: plain name lines, no titles, tight card */
+    .jobs{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+    .job{padding:8px 10px;gap:3px;border-radius:16px}
+    .job-no{font-size:18px}
+    .job-head{row-gap:0}
+    .job-head .job-customer{font-size:12.5px}
+    .job-head .job-loc{font-size:11.5px}
+    .lead,.crew li{background:none;border:0;box-shadow:none;border-radius:0;padding:1px 0}
+    .lead{display:flex;align-items:baseline;gap:6px;border-top:1px solid #e3ebf3;border-bottom:1px solid #e3ebf3;padding:4px 0;margin-bottom:2px}
+    .lead .label{width:auto;margin:0;flex:none;color:var(--teal)}
+    .lead .name{font-size:13.5px;font-weight:900;color:var(--navy2)}
+    .crew{padding:0}
+    .crew .label{display:none}
+    .crew ul{gap:0}
+    .crew li{font-size:13px;font-weight:700;line-height:1.3;color:var(--text)}
+    .person-title,.crew li .person-title,.lead .person-title{display:none}
+    .notes{font-size:11px;padding:3px 6px}
+    .none{font-size:11.5px}
+    .job{cursor:pointer}
+    .job:focus-visible{outline:3px solid #009dff;outline-offset:2px}
+    .job-detail{position:relative;width:min(440px,100%);max-height:86vh;overflow:auto;padding:0;border-radius:24px}
+    .jd-head{position:relative;padding:20px 20px 16px;color:#fff;background:radial-gradient(circle at 90% 10%,rgba(0,157,255,.28),transparent 45%),linear-gradient(135deg,#061226 0%,#0b2a4e 60%,#123f73 100%);border-bottom:3px solid #009dff}
+    .jd-close{position:absolute;top:12px;right:12px;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:16px;cursor:pointer}
+    .jd-no{font-size:32px;font-weight:950;letter-spacing:-.04em;line-height:1;padding-right:46px;text-shadow:0 2px 12px rgba(0,0,0,.45)}
+    .jd-customer{font-size:16px;font-weight:800;margin-top:8px}
+    .jd-loc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.78);margin-top:3px}
+    .jd-loc::before{content:"";width:12px;height:12px;flex:none;background:#009dff;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.500a2.5 2.5 0 0 1 0 5z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.500a2.5 2.5 0 0 1 0 5z'/%3E%3C/svg%3E") center/contain no-repeat}
+    .jd-loc:empty{display:none}
+    .jd-body{padding:6px 20px 20px}
+    .jd-sec{margin-top:16px}
+    .jd-sec h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#7b8ba1}
+    .jd-sec h4::after{content:"";flex:1;height:1px;background:#e3ebf3}
+    .jd-people{display:flex;flex-direction:column;gap:6px}
+    .jd-person{display:flex;align-items:center;gap:9px;padding:7px 10px 7px 7px;background:#f4f8fc;border:1px solid #dbe6f2;border-radius:14px;min-width:0}
+    .jd-person.lead{background:#eaf4ff;border-color:#b9dcfb}
+    .jd-av{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900;color:#fff;background:linear-gradient(135deg,#0b2a4e,#123f73)}
+    .jd-person.lead .jd-av{background:linear-gradient(135deg,#0077cc,#009dff)}
+    .jd-person b{font-size:14px;color:var(--navy2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .jd-notes{font-size:14px;color:#664900;background:var(--warn);border-left:3px solid #f5b100;border-radius:8px;padding:9px 11px;white-space:pre-wrap}
+    .jd-person b{flex:1;min-width:0}
+    .jd-also{flex:none;font-size:11.5px;font-weight:700;color:#7a5200;background:#fff4d6;border:1px solid #f5b100;border-radius:999px;padding:2px 8px;white-space:nowrap}
     .available{margin-top:22px;padding:12px 14px;border:1px solid rgba(216,224,234,.72);border-radius:22px;background:rgba(255,255,255,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     .available h3{margin:0 0 8px;font-size:13px;color:var(--navy2);text-transform:uppercase;letter-spacing:.055em}
     .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -156,7 +209,7 @@
 
     <div id="chart"><div class="message">Loading crew assignments…</div></div>
 
-    <footer class="version-footer"><span id="meta">Loading…</span><br>WhiteBoard — v0.8.23 · View only</footer>
+    <footer class="version-footer"><span id="meta">Loading…</span><br>WhiteBoard — v0.8.27 · View only</footer>
   </main>
 </div>
 
@@ -179,6 +232,18 @@
         <button class="btn-secondary" type="button" onclick="closeMe()">Cancel</button>
         <button class="btn-primary" type="button" onclick="setMe(document.getElementById('meSelect').value)">Show me</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="jobModal" onclick="if(event.target===this) closeJob()">
+    <div class="modal-card job-detail" role="dialog" aria-modal="true" aria-labelledby="jdNo">
+      <div class="jd-head">
+        <button class="jd-close" type="button" onclick="closeJob()" aria-label="Close">✕</button>
+        <div class="jd-no" id="jdNo"></div>
+        <div class="jd-customer" id="jdCustomer"></div>
+        <div class="jd-loc" id="jdLoc"></div>
+      </div>
+      <div class="jd-body" id="jdBody"></div>
     </div>
   </div>
 
@@ -307,7 +372,7 @@ function render(board){
       .sort((a, b) => a.name.localeCompare(b.name));
 
     const mine = meOk && onJob.some(a => a.nodeId === me);
-    return `<div class="job${meOk ? (mine ? ' mine' : ' dim') : ''}">
+    return `<div class="job${meOk ? (mine ? ' mine' : ' dim') : ''}" data-job="${escapeHtml(job.jobNo)}" tabindex="0" role="button" aria-label="Job ${escapeHtml(job.jobNo)} details">
       <div class="job-head">
         <div class="job-no">${escapeHtml(job.jobNo)}</div>
         ${job.customer ? `<div class="job-customer">${escapeHtml(job.customer)}</div>` : ''}
@@ -353,6 +418,40 @@ function render(board){
   }
   document.getElementById('meta').textContent = meta;
 }
+
+// Tap a job card to see everything about it.
+function openJob(jobNo){
+  const job = BOARD && BOARD.jobs.find(j => j.jobNo === jobNo);
+  if (!job) return;
+  const people = {};
+  BOARD.people.forEach(p => { people[p.id] = p; });
+  const onJob = BOARD.assignments.filter(a => a.jobNo === jobNo && people[a.nodeId] && people[a.nodeId].visible);
+  const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  const otherJobs = id => [...new Set(BOARD.assignments.filter(a => a.nodeId === id && a.jobNo !== jobNo && BOARD.jobs.some(j => j.jobNo === a.jobNo && j.onBoard)).map(a => a.jobNo))];
+  const also = id => { const o = otherJobs(id); return o.length ? `<span class="jd-also">Also on ${o.map(escapeHtml).join(', ')}</span>` : ''; };
+  const row = (id, cls) => `<div class="jd-person${cls ? ' ' + cls : ''}"><span class="jd-av">${escapeHtml(initials(people[id].name))}</span><b>${escapeHtml(people[id].name)}</b>${also(id)}</div>`;
+  const lead = onJob.find(a => a.role === 'Lead');
+  const crew = onJob.filter(a => a.role === 'Crew').sort((a, b) => people[a.nodeId].name.localeCompare(people[b.nodeId].name));
+  document.getElementById('jdNo').textContent = job.jobNo;
+  document.getElementById('jdCustomer').textContent = job.customer || '';
+  document.getElementById('jdLoc').textContent = job.location || '';
+  document.getElementById('jdBody').innerHTML =
+    (job.notes ? `<div class="jd-sec"><h4>Notes</h4><div class="jd-notes">${escapeHtml(job.notes)}</div></div>` : '') +
+    `<div class="jd-sec"><h4>Lead</h4><div class="jd-people">${lead ? row(lead.nodeId, 'lead') : '<div class="none">Not set</div>'}</div></div>` +
+    `<div class="jd-sec"><h4>Crew (${crew.length})</h4><div class="jd-people">${crew.length ? crew.map(a => row(a.nodeId)).join('') : '<div class="none">No crew assigned</div>'}</div></div>`;
+  document.getElementById('jobModal').style.display = 'flex';
+}
+function closeJob(){ document.getElementById('jobModal').style.display = 'none'; }
+
+document.getElementById('chart').addEventListener('click', e => {
+  const card = e.target.closest('.job');
+  if (card && !e.target.closest('button')) openJob(card.dataset.job);
+});
+document.getElementById('chart').addEventListener('keydown', e => {
+  const card = e.target.closest('.job');
+  if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openJob(card.dataset.job); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJob(); });
 
 function findMeMarkup(board, me, people){
   if (!me) return '<button class="find-me" type="button" onclick="openFindMe()">📍 Find me</button>';

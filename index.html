@@ -270,6 +270,60 @@
     .jobs-panel .jobs{padding-bottom:16px}
     .jobs-panel .completed-row{width:auto;margin:0 -16px;border-radius:0}
     .jobs-panel .completed-row[hidden]{display:none}
+    /* 8. Compact job cards: number + description on line 1, location on line 2 */
+    .jobs{gap:12px}
+    .job{padding:10px 12px;gap:6px}
+    .job-title{display:flex;align-items:baseline;gap:8px;min-width:0}
+    .job-title b{display:inline;flex:none;font-size:18px}
+    .job-title .jt-desc{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700;color:var(--text)}
+    .job-loc{font-size:12px;font-weight:600;color:var(--muted);margin-top:-3px}
+    /* 9. Logged out (view only): slim name rows, no drop boxes */
+    body:not(.editing) .dropzone{border:0;background:none;padding:0;min-height:0}
+    body:not(.editing) .pool{min-height:0}
+    body:not(.editing) .employee{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:2px 8px;justify-content:flex-start;min-height:0;padding:3px 8px;margin:3px 0;border-radius:8px;box-shadow:none}
+    body:not(.editing) .employee strong{font-size:13.5px}
+    body:not(.editing) .employee span{font-size:11.5px}
+    body:not(.editing) .slot-label{font-size:9.5px;margin-bottom:1px}
+    /* 10. Unassigned = long card across the top; Active Jobs below, 4 wide */
+    .board{grid-template-columns:minmax(0,1fr)}
+    @media(min-width:901px){
+      .unassigned-panel{max-height:none;display:block}
+      .unassigned-panel .pool{overflow:visible}
+    }
+    .unassigned-panel .pool{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0 10px;min-height:0}
+    .unassigned-panel .pool .placeholder{grid-column:1/-1}
+    /* 11. Job cards match the view page: plain name lines, no titles, divider lines around the lead */
+    .job{gap:3px}
+    .job .dropzone{border:0;background:none;padding:0;min-height:0;border-radius:8px}
+    .editing .job .dropzone{border:1px dashed #cdd9e6;padding:2px 4px;min-height:26px}
+    .editing .job .dropzone.over{border-color:var(--teal);background:#e9fbfd}
+    .job .placeholder{padding:3px 0;font-size:11.5px}
+    body .job .employee{display:flex;flex-direction:row;flex-wrap:wrap;align-items:baseline;justify-content:flex-start;gap:2px 8px;min-height:0;margin:0;padding:1px 4px;background:none;border:0;border-radius:6px;box-shadow:none}
+    body .job .employee strong{font-size:13px;font-weight:700;line-height:1.3;color:var(--text)}
+    body .job .employee span{display:none}
+    body .job .employee.lead strong{font-size:13.5px;font-weight:900;color:var(--navy2)}
+    body .job .employee.selected{background:#e6f5ff}
+    .lead-slot{display:flex;align-items:baseline;gap:6px;padding:4px 0;border-top:1px solid #e3ebf3;border-bottom:1px solid #e3ebf3;margin-bottom:2px}
+    .lead-slot .slot-label{flex:none;margin:0;color:var(--teal);font-size:10.5px}
+    .lead-slot .dropzone{flex:1;min-width:0}
+    .crew-slot .slot-label{display:none}
+    .job .job-pill{font-size:9.5px;padding:0 5px;margin-left:4px}
+    /* Logged in: each person is its own bordered piece you can pick up and move */
+    body.editing .job .employee{background:#fff;border:1px solid #cdd9e6;border-left:4px solid var(--teal);border-radius:10px;padding:4px 8px;margin:4px 0;box-shadow:0 2px 5px rgba(16,50,90,.08);cursor:grab}
+    body.editing .job .employee.lead{border-left-color:var(--navy);background:#eef5fc}
+    body.editing .job .employee:hover{border-color:var(--teal);box-shadow:0 3px 8px rgba(0,157,255,.18)}
+    body.editing .job .employee:active{cursor:grabbing}
+    body.editing .job .employee.selected{background:#e6f5ff;outline:2px solid #009dff;outline-offset:0}
+    body.editing .job .dropzone{padding:2px 4px}
+    /* Nobody unassigned: shrink to a thin line (still accepts drops) */
+    .unassigned-panel.is-empty{padding:8px 16px;border-radius:14px;max-height:none}
+    .unassigned-panel.is-empty h3{margin:0;font-size:13px}
+    .unassigned-panel.is-empty h3::after{display:none}
+    .unassigned-panel.is-empty .pool{display:none}
+    .jobs{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media(max-width:1249px){.jobs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:899px){.jobs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:620px){.jobs{grid-template-columns:minmax(0,1fr)}}
   </style>
 </head>
 <body>
@@ -364,7 +418,7 @@
   </main>
 
     <footer class="version-footer">
-      CBPS Whiteboard — v0.8.23
+      CBPS Whiteboard — v0.8.31
     </footer>
   </main>
 </div>
@@ -654,6 +708,7 @@ function render(){
   document.getElementById('unassignedPool').innerHTML =
     unassigned.map(p => employeeMarkup(p, false)).join('') || '<div class="placeholder">Everyone is placed</div>';
   document.getElementById('unassignedCount').textContent = '(' + unassigned.length + ')';
+  document.querySelector('.unassigned-panel').classList.toggle('is-empty', unassigned.length === 0);
 
   const jobs = jobsOnBoard();
   document.getElementById('jobCount').textContent = '(' + jobs.length + ')';
@@ -682,7 +737,7 @@ function jobMarkup(job, people, editing){
   const title = [job.customer, job.location].filter(Boolean).map(escapeHtml).join(' — ');
 
   const crewZone = crew.length || editing
-    ? `<div>
+    ? `<div class="crew-slot">
         <div class="slot-label">Crew</div>
         <div class="dropzone" data-job="${jobAttr}" data-role="Crew">
           ${crew.map(p => employeeMarkup(p, false)).join('') || '<div class="placeholder">+ Add crew</div>'}
@@ -691,14 +746,15 @@ function jobMarkup(job, people, editing){
     : '';
 
   return `<div class="job" data-job="${jobAttr}">
-    <div class="job-title"><b>${jobAttr}</b>${title ? `<span>${title}</span>` : ''}</div>
+    <div class="job-title"><b>${jobAttr}</b>${job.customer ? `<span class="jt-desc" title="${escapeHtml(job.customer)}">${escapeHtml(job.customer)}</span>` : ''}</div>
+    ${job.location ? `<div class="job-loc">${escapeHtml(job.location)}</div>` : ''}
     ${job.notes ? `<div class="job-notes">${escapeHtml(job.notes)}</div>` : ''}
-    <div>
+    ${lead || editing ? `<div class="lead-slot">
       <div class="slot-label">Lead</div>
       <div class="dropzone lead-zone" data-job="${jobAttr}" data-role="Lead">
         ${lead ? employeeMarkup(people[lead.nodeId], true) : '<div class="placeholder">Select Lead</div>'}
       </div>
-    </div>
+    </div>` : ''}
     ${crewZone}
     ${editing ? `<button class="complete-btn" data-complete="${jobAttr}" title="Mark Complete" aria-label="Mark job ${jobAttr} complete">✓</button>` : ''}
   </div>`;
