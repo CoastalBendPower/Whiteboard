@@ -315,6 +315,12 @@
     body.editing .job .employee:active{cursor:grabbing}
     body.editing .job .employee.selected{background:#e6f5ff;outline:2px solid #009dff;outline-offset:0}
     body.editing .job .dropzone{padding:2px 4px}
+    /* 12. Mark-complete popup */
+    .cm-job{display:flex;flex-direction:column;gap:2px;margin:2px 0 12px;padding:10px 12px;border-radius:12px;background:#f4f8fc;border-left:4px solid #009dff}
+    .cm-job b{font-size:20px;font-weight:950;letter-spacing:-.03em;color:var(--navy2)}
+    .cm-job span{font-size:13px;font-weight:700;color:var(--muted)}
+    .cm-label{display:block;margin:10px 0 4px;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#7b8ba1}
+    .cm-date{min-height:44px;cursor:pointer}
     /* Nobody unassigned: shrink to a thin line (still accepts drops) */
     .unassigned-panel.is-empty{padding:8px 16px;border-radius:14px;max-height:none}
     .unassigned-panel.is-empty h3{margin:0;font-size:13px}
@@ -418,7 +424,7 @@
   </main>
 
     <footer class="version-footer">
-      CBPS Whiteboard — v0.8.31
+      CBPS Whiteboard — v1.0.0
     </footer>
   </main>
 </div>
@@ -522,7 +528,11 @@
   <!-- Mark complete -->
   <div id="completeModal" class="modal-backdrop" style="display:none;">
     <div class="modal-card">
-      <h3 id="completeTitle">Job Notes</h3>
+      <h3 id="completeTitle">Complete Job</h3>
+      <div class="cm-job"><b id="completeNo"></b><span id="completeDesc"></span></div>
+      <label class="cm-label" for="completeDate">Completed on</label>
+      <input id="completeDate" class="modal-input cm-date" type="date" aria-label="Completion date">
+      <label class="cm-label" for="completeNotes">Notes</label>
       <textarea id="completeNotes" class="modal-input" aria-label="Completion notes"></textarea>
       <div class="modal-actions">
         <button class="secondary" onclick="closeModal('completeModal')">Cancel</button>
@@ -1247,7 +1257,13 @@ let COMPLETE_JOB = null;
 function openComplete(jobNo){
   if (!isEditing() || busy) return;
   COMPLETE_JOB = jobNo;
-  document.getElementById('completeTitle').textContent = 'Job ' + jobNo + ' Notes';
+  const job = BOARD.jobs.find(j => j.jobNo === jobNo) || {};
+  document.getElementById('completeNo').textContent = jobNo;
+  document.getElementById('completeDesc').textContent = [job.customer, job.location].filter(Boolean).join(' — ');
+  const today = localDateStr_(new Date());
+  const dateInput = document.getElementById('completeDate');
+  dateInput.max = today;
+  dateInput.value = today;
   document.getElementById('completeNotes').value = '';
   document.getElementById('completeMessage').textContent = '';
   setButtonBusy('completeBtn', false, 'Mark Complete');
@@ -1255,9 +1271,14 @@ function openComplete(jobNo){
   setTimeout(() => document.getElementById('completeNotes').focus(), 50);
 }
 
+function localDateStr_(d){
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 function confirmComplete(){
   const notes = document.getElementById('completeNotes').value.trim();
-  popupEdit('completeJob', {jobNo: COMPLETE_JOB, notes}, 'completeBtn', 'Mark Complete', 'completeMessage', 'completeModal');
+  const completedOn = document.getElementById('completeDate').value;
+  popupEdit('completeJob', {jobNo: COMPLETE_JOB, notes, completedOn}, 'completeBtn', 'Mark Complete', 'completeMessage', 'completeModal');
 }
 
 /* ---------- Settings ---------- */
