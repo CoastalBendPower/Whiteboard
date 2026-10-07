@@ -1,0 +1,9 @@
+# Private / working files: never push
+code.gs
+reUI-backup_code.gs
+Jobs_import.csv
+*.xlsx
+Guardrails.md
+CLAUDE.md
+_ui-kit/
+.claude/

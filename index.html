@@ -7,6 +7,7 @@
   <title>WhiteBoard</title>
   <link rel="icon" href="assets/icon-192.png">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="ui-kit.css">
   <style>
     :root{
       --navy:#123f73;
@@ -20,11 +21,6 @@
       --danger:#b42318;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef4f9;color:var(--text)}
-    header{
-      background:linear-gradient(135deg,var(--navy2),var(--navy));
-      color:white;padding:18px 22px;border-bottom:5px solid var(--teal)
-    }
     .header-inner{display:flex;gap:16px;align-items:center;justify-content:space-between;max-width:1500px;margin:auto}
     .header-right{display:flex;align-items:center;gap:14px}
     .ph-home{display:block;width:52px;height:52px;border-radius:50%;overflow:hidden;flex:none;box-shadow:0 4px 12px rgba(0,0,0,.25)}
@@ -136,6 +132,11 @@
     .ctx-item:hover{background:#e9fbfd}
     .ctx-item b{color:var(--navy);margin-right:4px}
     .ctx-empty{font-size:13px;color:var(--muted);padding:8px}
+    .crew-search{margin-bottom:8px;padding:10px 12px;font-size:15px}
+    .employee.selected{outline:3px solid #009dff;outline-offset:1px;background:#e6f5ff}
+    .assign-bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9000;display:flex;align-items:center;gap:14px;background:#0b2a4e;color:white;border-radius:999px;padding:10px 12px 10px 20px;box-shadow:0 12px 30px rgba(9,42,79,.35);font-size:15px;max-width:calc(100% - 24px)}
+    .assign-bar b{color:#7cc8ff}
+    .assign-bar .secondary{border-radius:999px;padding:8px 14px}
     .ctx-unassign{color:var(--danger);font-weight:800;border-bottom:1px solid #eef2f6;border-radius:8px 8px 0 0}
     .ctx-unassign:hover{background:#fde8e7}
     #splitAskText{font-size:16px;color:var(--text);font-weight:700}
@@ -144,7 +145,6 @@
     .version-footer{max-width:1500px;margin:0 auto 24px;padding:10px 12px;color:var(--muted);font-size:12px;text-align:center}
 
     @media(max-width:950px){
-      header{padding:15px 16px}
       .header-inner{align-items:center;gap:12px}
       .logo{width:62px;height:62px}
       .ph-home{width:42px;height:42px}
@@ -168,9 +168,6 @@
 
     /* ---------- PowerHub theme (cosmetic only) ---------- */
     :root{--navy:#123f73;--navy2:#0b2a4e;--teal:#009dff;--line:#d8e0ea;--text:#1f2933;--muted:#64748b;--soft:#f4f8fc}
-    body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(90deg,rgba(247,249,252,.08) 0%,rgba(247,249,252,.38) 22%,rgba(247,249,252,.55) 50%,rgba(247,249,252,.38) 78%,rgba(247,249,252,.08) 100%),radial-gradient(circle at 18% 18%,rgba(0,157,255,.16),transparent 28%),radial-gradient(circle at 82% 18%,rgba(18,63,115,.16),transparent 30%),url("assets/background_hub_v2.png") center top / cover no-repeat,linear-gradient(180deg,#f3f6fa 0%,#eef2f6 45%,#f7f9fb 100%);background-attachment:fixed}
-    @media(max-width:950px){body{background-attachment:scroll}}
-    header{background:radial-gradient(circle at 85% 20%,rgba(0,157,255,.22),transparent 40%),linear-gradient(135deg,#061226 0%,#0b2a4e 60%,#123f73 100%);border-bottom:3px solid #009dff;box-shadow:0 10px 28px rgba(15,23,42,.18)}
     .site-title{margin:0;font-size:46px;line-height:.95;font-weight:950;letter-spacing:-.055em;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.55)}
     .site-title .title-hub{color:#009dff;text-shadow:0 0 14px rgba(0,157,255,.48)}
     .site-title::after{content:"";display:block;width:150px;height:3px;margin-top:8px;border-radius:999px;background:linear-gradient(90deg,transparent,#009dff,transparent)}
@@ -186,12 +183,12 @@
     .panel h3::after{content:"";display:block;width:90px;height:3px;margin-top:8px;border-radius:999px;background:linear-gradient(90deg,transparent,#009dff,transparent)}
     .count{letter-spacing:0;text-transform:none;font-weight:700}
     .job{position:relative;background:white;border:1px solid rgba(216,224,234,.9);border-top:4px solid #009dff;border-radius:18px;box-shadow:0 6px 16px rgba(15,23,42,.06);gap:10px}
-    .job-title{padding-right:38px;font-size:13px;font-weight:700;color:var(--muted);line-height:1.3}
+    .job-title{padding-right:30px;font-size:13px;font-weight:700;color:var(--muted);line-height:1.3}
     .job-title b{display:block;font-size:19px;font-weight:900;color:var(--navy2);letter-spacing:-.01em}
     .job-notes{border-left:3px solid #f5b100;border-radius:6px}
     .slot-label{color:#7b8ba1}
-    .complete-btn{position:absolute;top:10px;right:10px;width:32px;height:32px;padding:0;border-radius:50%;background:#e7f8ee;color:#17663a;border:1px solid #2e9e5b;font-size:16px;font-weight:900;line-height:1}
-    .complete-btn:hover{background:#2e9e5b;color:white}
+    .complete-btn{position:absolute;top:12px;right:12px;width:22px;height:22px;min-width:0;padding:0;border-radius:6px;background:white;color:transparent;border:2px solid #009dff;font-size:14px;font-weight:900;line-height:1}
+    .complete-btn:hover,.complete-btn:focus-visible{background:#009dff;color:white;outline:none}
     .add-job-card{border:2px dashed #009dff;border-radius:18px;background:rgba(255,255,255,.7)}
     .add-job-card:hover{background:#e6f5ff}
     .dropzone{border:1.5px dashed #c7d4e3;background:#f8fbfe}
@@ -211,33 +208,140 @@
       .header-btn.solid{padding:13px 20px;font-size:16px}
       .employee{padding:9px 10px}
     }
+
+    /* ---------- UI kit fit (Whiteboard-specific) ---------- */
+    .title-hub{color:var(--accent);text-shadow:0 0 14px rgba(0,157,255,.48)}
+    .slim-title{color:#fff}
+    .slim-bar .header-user{flex-direction:row;align-items:center;gap:10px}
+    .slim-bar .header-user .user-name{font-size:14px;white-space:nowrap}
+    .slim-bar .header-btn{white-space:nowrap}
+    .page,.toolbar{max-width:none;padding-left:0;padding-right:0}
+    .toolbar{margin:14px 0;align-self:stretch}
+    .page{align-self:stretch;margin:0;padding-bottom:30px}
+    .version-footer{margin:0 0 24px}
+    .version-footer{max-width:none}
+    @media(max-width:900px){
+      .toolbar{background:rgba(238,244,249,.94);margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px}
+      .assign-bar{bottom:calc(76px + env(safe-area-inset-bottom))}
+      .slim-bar .header-user .user-name{display:none}
+      .slim-bar .header-btn{padding:10px 12px}
+    }
+
+    /* ---------- Match SafetyHQ / PowerHub (audit pass 1) ---------- */
+    /* 1. Status chips with a dot */
+    .status{display:inline-flex;align-items:center;gap:7px;flex-basis:auto;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid rgba(216,224,234,.9);font-size:12px;font-weight:800;color:var(--muted)}
+    .status::before{content:"";width:8px;height:8px;border-radius:50%;background:#94a3b8;flex:none}
+    .save-chip{padding:6px 14px;font-size:13px;border-width:1px}
+    .chip-icon{font-size:14px}
+    /* 2. Job cards = glance cards */
+    .job{background:rgba(255,255,255,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:22px;box-shadow:none;transition:transform .15s,border-color .15s}
+    .job:hover{transform:translateY(-2px);border-color:rgba(0,157,255,.55)}
+    .job-title b{font-weight:950;letter-spacing:-.03em;font-size:22px}
+    .slot-label{font-size:10.5px;font-weight:900;letter-spacing:.08em}
+    .job.flash,.employee.flash{animation:flash 1.6s ease-out}
+    @keyframes flash{0%,40%{box-shadow:0 0 0 4px rgba(0,157,255,.55)}100%{box-shadow:0 0 0 0 rgba(0,157,255,0)}}
+    /* 3. Crew names bigger and bold */
+    .employee{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:7px 10px}
+    .employee strong{font-size:15px;font-weight:900;letter-spacing:-.01em}
+    .employee span{font-size:12px;font-weight:700}
+    .employee.lead{background:#eef5fc}
+    /* 4. Under Construction = small chip */
+    .construction-wrap{margin:0 0 6px;padding:0;justify-content:flex-start}
+    .construction-badge{padding:5px 12px;font-size:12px;gap:8px;box-shadow:none;border-width:1px}
+    .construction-badge .icon{font-size:15px}
+    .construction-badge .small{display:inline;margin-left:6px;font-size:10px}
+    /* 5. Unassigned scrolls inside its card */
+    @media(min-width:901px){
+      .unassigned-panel{max-height:calc(100vh - 150px);display:flex;flex-direction:column}
+      .unassigned-panel .pool{flex:1 1 auto;min-height:0;overflow:auto}
+    }
+    /* 6. Popups = kit look; bottom sheets on phone */
+    .modal-backdrop{background:rgba(5,16,34,.64)}
+    .modal-card{border:1px solid rgba(0,157,255,.24);background:rgba(255,255,255,.97);box-shadow:0 28px 70px rgba(0,0,0,.30);border-radius:24px}
+    .modal-card h3{color:var(--navy2);font-size:1.25rem}
+    .modal-actions button{min-height:44px}
+    @media(max-width:700px){
+      .modal-backdrop{align-items:flex-end;padding:0}
+      .modal-card{width:100%;max-height:88vh;border-radius:22px 22px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+      .settings-card{width:100%}
+    }
+    /* 7. Completed row under Active Jobs */
+    .jobs-panel{padding-bottom:0;overflow:hidden}
+    .jobs-panel .jobs{padding-bottom:16px}
+    .jobs-panel .completed-row{width:auto;margin:0 -16px;border-radius:0}
+    .jobs-panel .completed-row[hidden]{display:none}
   </style>
 </head>
 <body>
-  <header>
-    <div class="header-inner">
-      <div class="header-brand">
-        <img class="logo" src="assets/CBPS_NB.png" alt="Coastal Bend Power Services">
-        <div>
-          <h1 class="site-title">White<span class="title-hub">Board</span></h1>
-        </div>
+<script>try { if (localStorage.getItem("powerhubSidebarCollapsed") === "1") document.documentElement.classList.add("sb-collapsed"); } catch (e) {}</script>
+<div class="app-shell">
+  <nav class="side-nav" aria-label="Main navigation">
+    <button class="side-toggle" type="button" id="sideToggle" aria-label="Collapse sidebar" aria-expanded="true" title="Collapse sidebar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 7-5 5 5 5M18 7l-5 5 5 5"/></svg>
+    </button>
+    <a class="side-link" href="https://coastalbendpower.github.io/PowerHub/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+      <span>PowerHub<small>Home</small></span>
+    </a>
+    <a class="side-link is-active" href="./" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H4zM8 20h8M12 16v4"/></svg>
+      <span>Whiteboard</span>
+    </a>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span>Timesheet</span><em class="side-soon">Soon</em>
+    </span>
+    <a class="side-link" href="https://account.sharesync.serverdata.net/login/v1.2/?client_id=sharesync_web_app_sts&amp;client_type=Sync-WebApp&amp;client_version=3.48.1&amp;application_client_id=5d5c5f78-10b2-0f0b-a925-606d43526abe&amp;redirect_uri=https%3A%2F%2Fsharesync.serverdata.net%2Fus4%2F&amp;locale=en-us" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>ShareSync</span>
+    </a>
+    <div class="side-group-label">Safety</div>
+    <a class="side-link" href="https://coastalbendpower.github.io/SafetyHQ/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 8.2 8 9 4.6-.8 8-4 8-9V6z"/></svg>
+      <span>SafetyHQ</span>
+    </a>
+    <a class="side-link" href="https://coastalbendpower.github.io/SafetyHQ/procedures.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"/></svg>
+      <span>Procedures</span>
+    </a>
+    <a class="side-link" href="https://coastalbendpower.na.hsiplatform.com/users/sign_in" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 8-4v6h2V8zM6 12.5v4c0 1.7 2.7 3 6 3s6-1.3 6-3v-4l-6 3z"/></svg>
+      <span>Training</span>
+    </a>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4a1 1 0 0 0 1 1h3l6 4V5L7 9H4a1 1 0 0 0-1 1zM17 8.5a5 5 0 0 1 0 7"/></svg>
+      <span>LiveWire</span><em class="side-soon">Soon</em>
+    </span>
+    <div class="side-group-label">Admin / HR</div>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></svg>
+      <span>Org Chart</span><em class="side-soon">Soon</em>
+    </span>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>
+      <span>Company Policies</span><em class="side-soon">Soon</em>
+    </span>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h6"/></svg>
+      <span>Forms Library</span><em class="side-soon">Soon</em>
+    </span>
+    <div class="side-spacer"></div>
+  </nav>
+
+  <main class="page-shell">
+    <header class="slim-bar">
+      <img class="slim-seal" src="assets/CBPS_NB.png" alt="Coastal Bend Power Services" width="48" height="48">
+      <div class="slim-brand">
+        <h1 class="slim-title">White<span class="title-hub">Board</span></h1>
+        <p class="slim-tagline">Jobs. Crews. Weekly assignments.</p>
       </div>
-      <div class="header-right">
-        <a class="ph-home" href="https://coastalbendpower.github.io/PowerHub/" title="Back to PowerHub" aria-label="Back to PowerHub"><img src="assets/button_Return_to_PowerHub_round_300.png" alt="Return to PowerHub"></a>
+      <div class="slim-actions">
+        <button class="u-btn" type="button" id="searchOpen" aria-label="Search Whiteboard (Ctrl+K)" title="Search (Ctrl+K)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
         <div class="header-user" id="headerUser"></div>
       </div>
-    </div>
-  </header>
-
-  <div class="construction-wrap">
-    <div class="construction-badge" title="Draft tool under active review">
-      <span class="icon">🚧</span>
-      <span>
-        Under Construction
-        <span class="small">Internal Draft / Review Mode</span>
-      </span>
-    </div>
-  </div>
+    </header>
 
   <div class="toolbar" id="toolbar"></div>
 
@@ -251,13 +355,41 @@
       <section class="panel jobs-panel">
         <h3>Active Jobs <span class="count" id="jobCount"></span></h3>
         <div class="jobs" id="jobs"></div>
+        <button type="button" class="completed-row" id="completedOpen" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+          <span class="completed-row-title">Completed Jobs</span><span class="count" id="closedCount"></span>
+        </button>
       </section>
     </section>
   </main>
 
-  <footer class="version-footer">
-    CBPS Whiteboard — v0.8.18
-  </footer>
+    <footer class="version-footer">
+      CBPS Whiteboard — v0.8.23
+    </footer>
+  </main>
+</div>
+
+<div class="search-overlay" id="searchOverlay" hidden>
+  <div class="search-panel" role="dialog" aria-modal="true" aria-label="Search Whiteboard">
+    <form class="search-form" id="hubSearchForm" role="search" autocomplete="off">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="hubSearch" placeholder="Search jobs, customers, people..." aria-label="Search Whiteboard" aria-controls="hubSearchResults" />
+      <kbd>Esc</kbd>
+    </form>
+    <div class="search-results" id="hubSearchResults" role="listbox" hidden></div>
+  </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Primary">
+  <a class="bn-item" href="https://coastalbendpower.github.io/PowerHub/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+  <a class="bn-item is-active" href="./" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H4zM8 20h8M12 16v4"/></svg><span>Whiteboard</span></a>
+  <a class="bn-item" href="https://coastalbendpower.github.io/SafetyHQ/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 8.2 8 9 4.6-.8 8-4 8-9V6z"/></svg><span>SafetyHQ</span></a>
+  <a class="bn-item" href="https://coastalbendpower.na.hsiplatform.com/users/sign_in" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 8-4v6h2V8zM6 12.5v4c0 1.7 2.7 3 6 3s6-1.3 6-3v-4l-6 3z"/></svg><span>Training</span></a>
+  <button class="bn-item" type="button" id="bnMore" aria-expanded="false" aria-controls="moreSheet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
+</nav>
+<div class="more-backdrop" id="moreBackdrop"></div>
+<div class="more-sheet" id="moreSheet" role="dialog" aria-label="All links"><div class="more-grip"></div><div class="more-body" id="moreBody"></div></div>
+
 
   <!-- Unlock -->
   <div id="unlockModal" class="modal-backdrop" style="display:none;">
@@ -301,6 +433,7 @@
       <div id="leadSplit"></div>
 
       <label class="field">Crew</label>
+      <input id="crewSearch" class="modal-input crew-search" type="search" placeholder="Search names…" autocomplete="off" oninput="filterCrew()">
       <div class="check-list" id="jobCrew"></div>
 
       <div class="modal-actions">
@@ -321,6 +454,12 @@
         <button class="primary" id="splitAskYes">Yes</button>
       </div>
     </div>
+  </div>
+
+  <!-- Tap-to-assign prompt -->
+  <div id="assignBar" class="assign-bar" style="display:none;">
+    <span>Tap a job for <b id="assignBarName"></b></span>
+    <button class="secondary" onclick="selectPerson(null)">Cancel</button>
   </div>
 
   <!-- Right-click: split to another job -->
@@ -381,6 +520,7 @@ let saveQueue = Promise.resolve();
 let saveFailed = false;   // last save failed; cleared by the next good save
 let dragId = null;
 let dragFromJob = '';   // job the dragged card came from ('' = Unassigned)
+let SELECTED = null;    // tap-to-assign: person picked from Unassigned, waiting for a job tap
 let dragging = false;
 let adminOpen = false;
 let settingsSection = 'employees';
@@ -443,22 +583,36 @@ function quietRefresh(){
     .then(board => {
       if (stamp !== editCounter || pending || busy || dragging) return;
       BOARD = board;
+      try { localStorage.setItem(BOARD_CACHE_KEY, JSON.stringify(board)); } catch (e) {}
       render();
     })
     .catch(() => {});
 }
 
+// Shows the last copy saved on this device right away, then swaps in the server's copy when it arrives.
+const BOARD_CACHE_KEY = 'cbpsWhiteboardBoard';
+
 function reloadData(){
-  setStatus('Loading board…');
+  let showedCache = false;
+  try {
+    const saved = JSON.parse(localStorage.getItem(BOARD_CACHE_KEY) || 'null');
+    if (saved && saved.people && saved.jobs && saved.assignments) {
+      BOARD = saved;
+      render();
+      showedCache = true;
+    }
+  } catch (e) {}
+  setStatus(showedCache ? 'Showing last saved copy, updating…' : 'Loading board…');
   return callApi('getBoard')
     .then(board => {
       BOARD = board;
+      try { localStorage.setItem(BOARD_CACHE_KEY, JSON.stringify(board)); } catch (e) {}
       render();
       setStatus(formatLastSaveStatus(BOARD.lastSave) || 'No saved updates logged yet');
     })
     .catch(err => {
       render();
-      setStatus('Board load failed: ' + err.message);
+      setStatus((showedCache ? 'Could not update (showing last saved copy): ' : 'Board load failed: ') + err.message);
     });
 }
 
@@ -510,7 +664,12 @@ function render(){
         ? '<button class="add-job-card big" onclick="openJobModal()">+ Add Job</button>'
         : '<div class="empty-board">No active jobs.</div>');
 
+  document.getElementById('completedOpen').hidden = !editing;
+  document.getElementById('closedCount').textContent = '(' + (BOARD.closedJobs || []).length + ')';
+
   wireDragDrop();
+  if (SELECTED && (!editing || !unassigned.some(p => p.id === SELECTED))) selectPerson(null);
+  else if (SELECTED) selectPerson(SELECTED);
 }
 
 function jobMarkup(job, people, editing){
@@ -579,8 +738,25 @@ function wireDragDrop(){
   });
 
   // Tap a job's Lead or Crew area to edit the team with checkboxes (main way on phones).
+  // If someone is picked from Unassigned, the tap assigns them there instead.
   document.querySelectorAll('.job .dropzone').forEach(zone => {
-    zone.addEventListener('click', () => openJobModal(zone.dataset.job));
+    zone.addEventListener('click', e => {
+      e.stopPropagation();
+      if (SELECTED) assignSelected(zone.dataset.job, zone.dataset.role);
+      else openJobModal(zone.dataset.job);
+    });
+  });
+  document.querySelectorAll('.job').forEach(job => {
+    job.addEventListener('click', e => {
+      if (!SELECTED || e.target.closest('.complete-btn')) return;
+      assignSelected(job.dataset.job, 'Crew');
+    });
+  });
+  document.querySelectorAll('#unassignedPool .employee').forEach(card => {
+    card.addEventListener('click', e => {
+      e.stopPropagation();
+      selectPerson(SELECTED === card.dataset.id ? null : card.dataset.id);
+    });
   });
 
   document.querySelectorAll('.employee').forEach(card => {
@@ -671,6 +847,27 @@ function moveEmployee(nodeId, fromJob, jobNo, role){
     .catch(() => callApi('getBoard').then(board => { BOARD = board; render(); }).catch(() => {}));
 }
 
+// Tap-to-assign: tap a person in Unassigned (they highlight), then tap a job. Tap them again or Cancel to drop it.
+function selectPerson(nodeId){
+  SELECTED = nodeId;
+  document.querySelectorAll('#unassignedPool .employee').forEach(c => c.classList.toggle('selected', c.dataset.id === SELECTED));
+  const bar = document.getElementById('assignBar');
+  const person = SELECTED ? peopleById()[SELECTED] : null;
+  if (person) {
+    document.getElementById('assignBarName').textContent = person.name;
+    bar.style.display = 'flex';
+  } else {
+    SELECTED = null;
+    bar.style.display = 'none';
+  }
+}
+
+function assignSelected(jobNo, role){
+  const nodeId = SELECTED;
+  selectPerson(null);
+  if (nodeId && jobNo) moveEmployee(nodeId, '', jobNo, role || 'Crew');
+}
+
 // Right-click menu: lists active jobs this person isn't on yet. Picking one adds them there as Crew.
 function openSplitMenu(nodeId, fromJob, x, y){
   if (!isEditing() || busy) return;
@@ -709,7 +906,7 @@ function closeSplitMenu(){
 }
 
 document.addEventListener('click', e => { if (!e.target.closest('#splitMenu')) closeSplitMenu(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSplitMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSplitMenu(); selectPerson(null); } });
 window.addEventListener('scroll', e => { if (!(e.target.closest && e.target.closest('#splitMenu'))) closeSplitMenu(); }, true);
 
 // Popup saves: wait for the result, block drags meanwhile.
@@ -853,6 +1050,7 @@ function openJobModal(jobNo){
   renderLeadSplit();
 
   document.getElementById('jobCrew').innerHTML = '';
+  document.getElementById('crewSearch').value = '';
   renderCrewChecklist(onJob.filter(a => a.role === 'Crew').map(a => a.nodeId));
   document.getElementById('jobMessage').textContent = '';
   setButtonBusy('jobSaveBtn', false, 'Save Job');
@@ -886,6 +1084,16 @@ function renderCrewChecklist(preChecked){
     });
   });
   wireSplitRadios(box);
+  filterCrew();
+}
+
+// Picker search: hides names that don't match what's typed.
+function filterCrew(){
+  const q = document.getElementById('crewSearch').value.trim().toLowerCase();
+  document.querySelectorAll('#jobCrew .check-item').forEach(item => {
+    const name = item.querySelector('.check-row span').firstChild.textContent.toLowerCase();
+    item.style.display = !q || name.includes(q) ? '' : 'none';
+  });
 }
 
 // Jobs (other than this one) a person is on, if they're not on this job yet. Empty = no question needed.
@@ -1158,6 +1366,120 @@ render();
 reloadData();
 // This page is for editors: ask for the PIN right away on a device that isn't logged in. Cancel = view only.
 if (!EDITOR) openUnlock();
+</script>
+<script>
+// Collapsible sidebar (icon-only rail), same storage key as PowerHub.
+(function () {
+  const sideToggle = document.getElementById("sideToggle");
+  document.querySelectorAll(".side-nav .side-link").forEach(link => {
+    const label = (link.querySelector("span")?.firstChild?.textContent || "").trim();
+    if (!label) return;
+    link.title = label;
+    link.setAttribute("aria-label", label);
+  });
+  const apply = collapsed => {
+    document.documentElement.classList.toggle("sb-collapsed", collapsed);
+    if (!sideToggle) return;
+    const label = collapsed ? "Expand sidebar" : "Collapse sidebar";
+    sideToggle.setAttribute("aria-expanded", String(!collapsed));
+    sideToggle.setAttribute("aria-label", label);
+    sideToggle.title = label;
+  };
+  apply(document.documentElement.classList.contains("sb-collapsed"));
+  sideToggle?.addEventListener("click", () => {
+    const next = !document.documentElement.classList.contains("sb-collapsed");
+    apply(next);
+    try { localStorage.setItem("powerhubSidebarCollapsed", next ? "1" : "0"); } catch (e) {}
+  });
+
+  // Phone bottom bar: More opens the full grouped menu (copied from the sidebar).
+  const moreBtn = document.getElementById("bnMore"), sheet = document.getElementById("moreSheet");
+  const backdrop = document.getElementById("moreBackdrop"), moreBody = document.getElementById("moreBody");
+  if (moreBtn && sheet && backdrop && moreBody) {
+    const setMore = open => {
+      if (open && !moreBody.children.length) {
+        document.querySelectorAll(".side-nav > *").forEach(node => {
+          if (node.classList.contains("side-toggle")) return;
+          const copy = node.cloneNode(true);
+          copy.removeAttribute("id");
+          copy.classList.remove("is-active");
+          moreBody.appendChild(copy);
+        });
+      }
+      sheet.classList.toggle("is-open", open);
+      backdrop.classList.toggle("is-open", open);
+      moreBtn.setAttribute("aria-expanded", String(open));
+    };
+    moreBtn.addEventListener("click", () => setMore(!sheet.classList.contains("is-open")));
+    backdrop.addEventListener("click", () => setMore(false));
+    moreBody.addEventListener("click", event => {
+      const link = event.target.closest(".side-link");
+      if (link && !link.classList.contains("is-disabled")) setMore(false);
+    });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") setMore(false); });
+  }
+})();
+</script>
+<script>
+// Completed Jobs row opens Settings on the Closed Jobs tab. Search (Ctrl+K or "/") finds jobs and people on the board.
+(function () {
+  const clean = x => String(x || "").replace(/\s+/g, " ").trim().toLowerCase();
+  document.getElementById("completedOpen").addEventListener("click", () => { settingsSection = "closed"; openSettings(); });
+  const input = document.getElementById("hubSearch"), results = document.getElementById("hubSearchResults");
+  const form = document.getElementById("hubSearchForm"), overlay = document.getElementById("searchOverlay");
+  let current = [];
+  const openSearch = () => { overlay.hidden = false; input.value = ""; results.hidden = true; input.focus(); };
+  const closeSearch = () => { overlay.hidden = true; input.value = ""; results.hidden = true; };
+  function buildIndex() {
+    const idx = [];
+    BOARD.jobs.filter(j => j.onBoard).forEach(j => {
+      const sub = [j.customer, j.location].filter(Boolean).join(" — ");
+      idx.push({ group: "Jobs", title: j.jobNo, sub, hay: clean(j.jobNo + " " + sub + " " + j.notes), kind: "job", key: j.jobNo });
+    });
+    const byId = {};
+    BOARD.assignments.forEach(a => { (byId[a.nodeId] = byId[a.nodeId] || []).push(a.jobNo); });
+    BOARD.people.filter(p => p.visible).forEach(p => {
+      const jobs = Array.from(new Set(byId[p.id] || []));
+      const sub = [p.title, jobs.length ? "Job " + jobs.join(", ") : "Unassigned"].filter(Boolean).join(" · ");
+      idx.push({ group: "People", title: p.name, sub, hay: clean(p.name + " " + sub), kind: "person", key: p.id, job: jobs[0] });
+    });
+    return idx;
+  }
+  function openResult(r) {
+    closeSearch();
+    const sel = r.kind === "job" ? '.job[data-job="' + CSS.escape(r.key) + '"]'
+      : (r.job ? '.job[data-job="' + CSS.escape(r.job) + '"]' : '.employee[data-id="' + CSS.escape(r.key) + '"]');
+    const el = document.querySelector(sel);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  }
+  function runSearch() {
+    const q = clean(input.value);
+    if (!q) { results.hidden = true; return; }
+    const terms = q.split(" ");
+    current = buildIndex().filter(r => terms.every(t => r.hay.includes(t))).slice(0, 12);
+    let html = "", last = "";
+    current.forEach((r, i) => {
+      if (r.group !== last) { html += '<div class="result-group">' + escapeHtml(r.group) + '</div>'; last = r.group; }
+      html += '<button type="button" role="option" class="result-item' + (i === 0 ? " is-first" : "") + '" data-i="' + i + '">' + escapeHtml(r.title) + (r.sub ? '<small>' + escapeHtml(r.sub) + '</small>' : "") + '</button>';
+    });
+    results.innerHTML = current.length ? html : '<div class="result-empty">No matches on the board.</div>';
+    results.hidden = false;
+  }
+  input.addEventListener("input", runSearch);
+  input.addEventListener("focus", runSearch);
+  form.addEventListener("submit", e => { e.preventDefault(); if (current[0]) openResult(current[0]); });
+  results.addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (b) openResult(current[Number(b.dataset.i)]); });
+  document.getElementById("searchOpen").addEventListener("click", openSearch);
+  overlay.addEventListener("click", e => { if (e.target === overlay) closeSearch(); });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") { closeSearch(); return; }
+    const typing = /^(input|textarea|select)$/i.test(e.target.tagName || "");
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openSearch(); }
+    else if (e.key === "/" && !typing) { e.preventDefault(); openSearch(); }
+  });
+})();
 </script>
 </body>
 </html>

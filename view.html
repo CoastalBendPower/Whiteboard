@@ -6,149 +6,181 @@
   <title>WhiteBoard</title>
   <link rel="icon" href="assets/icon-192.png">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="ui-kit.css">
   <style>
     :root{
       --navy:#123f73;
-      --navy2:#092a4f;
-      --teal:#16a7b8;
-      --line:#c9d8e8;
-      --text:#12263f;
-      --muted:#667085;
+      --navy2:#0b2a4e;
+      --teal:#009dff;
+      --line:#d8e0ea;
+      --text:#1f2933;
+      --muted:#64748b;
       --warn:#fff7e6;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef4f9;color:var(--text)}
-    .sheet{max-width:1400px;margin:18px auto;background:white;border:1px solid var(--line);border-radius:18px;padding:22px 24px 26px;box-shadow:0 10px 28px rgba(16,50,90,.10);position:relative}
-
-    .top{display:flex;align-items:center;gap:16px;border-bottom:4px solid var(--teal);padding-bottom:14px}
-    .logo{width:64px;height:64px;border-radius:50%;object-fit:contain;border:1px solid var(--line);padding:4px;background:white}
-    .top h1{margin:0;font-size:24px;color:var(--navy2)}
-    .top .sub{margin-top:3px;font-weight:800;color:var(--navy);font-size:15px}
-    .top .meta{margin-top:3px;font-size:12px;color:var(--muted)}
-    .draft{display:inline-block;margin-left:8px;font-size:11px;font-weight:800;color:#7a5200;background:#fff4d6;border:1px solid #f5b100;border-radius:999px;padding:2px 8px;vertical-align:middle}
-
-    .edit-btn{position:absolute;top:18px;right:18px;width:46px;height:46px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(16,50,90,.25)}
-    .edit-btn{border:0;cursor:pointer}
-    .corner{position:absolute;top:18px;right:18px;display:flex;gap:10px;align-items:center}
-    .corner .edit-btn{position:static}
-    .ph-home{display:block;width:46px;height:46px;border-radius:50%;overflow:hidden;box-shadow:0 4px 12px rgba(16,50,90,.25)}
-    .ph-home img{width:100%;height:100%;object-fit:cover;display:block}
-    .job-pill{font-size:10px;font-weight:800;color:#7a5200;background:#fff4d6;border:1px solid #f5b100;border-radius:999px;padding:1px 6px;margin-left:5px;vertical-align:middle;white-space:nowrap}
+    .title-hub{color:var(--teal);text-shadow:0 0 14px rgba(0,157,255,.48)}
+    .slim-title{color:#fff}
+    .edit-btn{width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0b2a4e,#123f73);box-shadow:0 0 0 2px rgba(0,157,255,.35),0 4px 12px rgba(16,50,90,.25)}
     .edit-btn svg{width:22px;height:22px;fill:white}
+    .job-pill{font-size:10px;font-weight:800;color:#7a5200;background:#fff4d6;border:1px solid #f5b100;border-radius:999px;padding:1px 6px;margin-left:5px;vertical-align:middle;white-space:nowrap}
 
-    .modal-backdrop{position:fixed;inset:0;background:rgba(9,42,79,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}
-    .modal-card{background:white;border-radius:18px;padding:18px;width:min(340px,100%);box-shadow:0 18px 45px rgba(0,0,0,.28)}
-    .modal-card h3{margin:0 0 8px;color:var(--navy)}
+    .modal-backdrop{align-items:center;justify-content:center}
+    .modal-card{width:min(340px,100%);padding:18px}
+    .modal-card h3{margin:0 0 8px;color:var(--navy2);font-size:1.25rem}
     .modal-card p{margin:0 0 12px;color:var(--muted);font-size:14px}
     .pin-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:18px}
     .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
-    .modal-actions button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;font-size:14px}
+    .modal-actions button{border:0;border-radius:12px;padding:11px 14px;min-height:44px;font-weight:700;cursor:pointer;font-size:14px}
     .btn-primary{background:var(--navy);color:white}
     .btn-secondary{background:white;color:var(--navy);border:1px solid var(--line) !important}
     .modal-message{margin-top:10px;color:#b42318;font-size:13px;font-weight:700}
 
-    /* Org chart: root box, connector, then job boxes hanging off a bus line */
-    .root-wrap{display:flex;flex-direction:column;align-items:center;margin-top:20px}
-    .root{background:var(--navy);color:white;border-radius:12px;padding:10px 22px;font-weight:900;font-size:16px;text-align:center}
-    .root small{display:block;font-weight:700;opacity:.85;font-size:12px;margin-top:2px}
-    .stem{width:2px;height:18px;background:var(--line)}
-    .job-count{margin:18px 2px 8px;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.055em}
-    .jobs{border-top:2px solid var(--line);padding-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px 14px}
+    .chart-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 2px 14px}
+    .job-count{font-size:12px;font-weight:800;color:var(--navy2);text-transform:uppercase;letter-spacing:.055em}
+    .find-me,.find-me button{border:0;font:inherit;cursor:pointer}
+    .find-me{background:white;color:var(--navy2);border:1px solid #c7d4e3;border-radius:999px;padding:10px 14px;min-height:44px;font-size:13px;font-weight:800;box-shadow:0 4px 12px rgba(15,23,42,.08)}
+    .find-me.set{display:inline-flex;align-items:center;padding:0;background:#e6f5ff;border-color:#009dff}
+    .find-me.set button{background:none;color:var(--navy2);font-size:13px;font-weight:800;padding:10px 6px 10px 14px}
+    .find-me.set .clear{padding:10px 12px 10px 6px;color:var(--muted)}
 
-    .job{position:relative;border:2px solid var(--navy);border-radius:12px;overflow:hidden;break-inside:avoid;background:white}
-    .job::before{content:"";position:absolute;top:-20px;left:50%;width:2px;height:18px;background:var(--line)}
-    .job-head{background:var(--navy);color:white;padding:8px 10px}
-    .job-no{font-weight:900;font-size:17px}
-    .job-customer{font-weight:700;font-size:13px;margin-top:2px}
-    .job-loc{font-size:11px;opacity:.85;margin-top:2px}
-    .lead{padding:8px 10px;border-bottom:1px solid var(--line);background:#f3f8fc}
-    .label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-    .lead .name{font-weight:900;color:var(--navy);font-size:14px;margin-top:2px}
-    .person-title{font-size:11px;color:var(--muted)}
-    .crew{padding:6px 10px 8px}
-    .crew ul{list-style:none;margin:4px 0 0;padding:0}
-    .crew li{padding:4px 0;border-bottom:1px dashed #e3ebf3;font-size:13px;font-weight:700}
-    .crew li:last-child{border-bottom:0}
-    .crew li .person-title{display:block;font-weight:400}
+    /* Job cards: same look as the editor board */
+    .jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+    .job{position:relative;display:flex;flex-direction:column;gap:10px;padding:12px;background:rgba(255,255,255,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(216,224,234,.9);border-top:4px solid #009dff;border-radius:22px;transition:transform .15s,border-color .15s;break-inside:avoid}
+    .job:hover{transform:translateY(-2px);border-color:rgba(0,157,255,.55)}
+    .job-no{display:block;font-size:22px;font-weight:950;letter-spacing:-.03em;color:var(--navy2)}
+    .job-customer{font-size:13px;font-weight:700;color:var(--muted);line-height:1.3;margin-top:2px}
+    .job-loc{font-size:12px;color:var(--muted);margin-top:1px}
+    .label{font-size:10.5px;font-weight:900;color:#7b8ba1;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+    .lead,.crew li{background:white;border:1px solid #dbe6f2;border-left:5px solid var(--teal);border-radius:12px;padding:7px 10px;box-shadow:0 3px 8px rgba(16,50,90,.06)}
+    .lead{border-left-color:var(--navy);background:#eef5fc}
+    .lead .name,.crew li{font-size:15px;font-weight:900;letter-spacing:-.01em;color:var(--navy2)}
+    .person-title{font-size:12px;font-weight:700;color:var(--muted)}
+    .crew ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+    .crew li .person-title{display:block}
     .none{color:#98a2b3;font-size:12px;font-style:italic}
-    .notes{font-size:11px;color:#664900;background:var(--warn);padding:6px 10px;border-top:1px solid #ffd78a}
+    .notes{font-size:12px;color:#664900;background:var(--warn);border-left:3px solid #f5b100;border-radius:6px;padding:6px 8px}
+    .job.mine{box-shadow:0 0 0 3px #009dff,0 10px 24px rgba(0,157,255,.25)}
+    .job.dim{opacity:.45}
+    mark.me{background:#fff4d6;color:inherit;border-radius:4px;padding:0 3px;box-shadow:0 0 0 1px #f5b100}
 
-    .available{margin-top:22px;border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
-    .available h3{margin:0 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+    .available{margin-top:22px;padding:12px 14px;border:1px solid rgba(216,224,234,.72);border-radius:22px;background:rgba(255,255,255,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    .available h3{margin:0 0 8px;font-size:13px;color:var(--navy2);text-transform:uppercase;letter-spacing:.055em}
     .chips{display:flex;flex-wrap:wrap;gap:6px}
-    .chip{font-size:12px;font-weight:700;background:#f3f8fc;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+    .chip{font-size:12px;font-weight:700;background:#f4f8fc;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--navy2)}
 
     .message{text-align:center;color:var(--muted);font-weight:700;padding:40px 10px}
-    .footer{text-align:center;color:var(--muted);font-size:11px;margin:10px 0 24px}
+    .version-footer{margin:auto 0 24px;padding:10px 12px;color:var(--muted);font-size:12px;text-align:center}
 
-    @media(max-width:600px){
-      .sheet{margin:0;border-radius:0;border:0;padding:16px}
-      .top{padding-right:128px}
-      .corner{top:14px;right:14px}
-      .logo{width:48px;height:48px}
-      .top h1{font-size:18px}
-      .edit-btn{top:14px;right:14px}
+    @media(max-width:900px){
+      .slim-bar .edit-btn{width:40px;height:40px}
     }
-
-
-    /* ---------- PowerHub theme (cosmetic only) ---------- */
-    :root{--navy:#123f73;--navy2:#0b2a4e;--teal:#009dff;--line:#d8e0ea;--text:#1f2933;--muted:#64748b}
-    body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(90deg,rgba(247,249,252,.08) 0%,rgba(247,249,252,.38) 22%,rgba(247,249,252,.55) 50%,rgba(247,249,252,.38) 78%,rgba(247,249,252,.08) 100%),radial-gradient(circle at 18% 18%,rgba(0,157,255,.16),transparent 28%),radial-gradient(circle at 82% 18%,rgba(18,63,115,.16),transparent 30%),url("assets/background_hub_v2.png") center top / cover no-repeat,linear-gradient(180deg,#f3f6fa 0%,#eef2f6 45%,#f7f9fb 100%);background-attachment:fixed}
-    @media(max-width:950px){body{background-attachment:scroll}}
-    .sheet{background:transparent;border:0;box-shadow:none}
-    .available{background:rgba(255,255,255,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-    .job-count{color:var(--navy2)}
-    .top{background:radial-gradient(circle at 85% 20%,rgba(0,157,255,.22),transparent 40%),linear-gradient(135deg,#061226 0%,#0b2a4e 60%,#123f73 100%);border-radius:16px;border-bottom:3px solid #009dff;padding:14px 18px;padding-right:150px}
-    .top .meta{color:rgba(255,255,255,.78);margin-top:6px}
-    .top .site-title{margin:0;font-size:46px;line-height:.95;font-weight:950;letter-spacing:-.055em;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.55)}
-    .top .site-title .title-hub{color:#009dff;text-shadow:0 0 14px rgba(0,157,255,.48)}
-    .top .site-title::after{content:"";display:block;width:150px;height:3px;margin-top:8px;border-radius:999px;background:linear-gradient(90deg,transparent,#009dff,transparent)}
-    .corner{top:36px;right:40px}
-    .logo{border:0;padding:0;background:none}
-    .top .sub{text-transform:uppercase;letter-spacing:.055em;font-size:13px;color:var(--navy)}
-    .root{background:linear-gradient(135deg,#0b2a4e,#123f73);border-radius:14px;box-shadow:0 6px 14px rgba(15,23,42,.15)}
-    .job{border:1px solid rgba(216,224,234,.9);border-radius:16px;box-shadow:0 6px 16px rgba(15,23,42,.07)}
-    .job-head{background:linear-gradient(135deg,#0b2a4e,#123f73);border-bottom:3px solid #009dff}
-    .lead{background:#f4f8fc}
-    .lead .name{color:var(--navy2)}
-    .notes{border-left:3px solid #f5b100}
-    .edit-btn{background:linear-gradient(135deg,#0b2a4e,#123f73);box-shadow:0 0 0 2px rgba(0,157,255,.35),0 4px 12px rgba(16,50,90,.25)}
-    .ph-home{width:56px;height:56px;border-radius:0;overflow:visible;box-shadow:none}
-    .ph-home img{object-fit:contain}
-    .available{border-radius:16px;border-color:#c7d4e3}
-    .chip{border-color:#d8e0ea;background:#f4f8fc;color:var(--navy2)}
-    @media(max-width:600px){
-      .top{padding:12px 14px;padding-right:128px}
-      .top .site-title{font-size:32px}
-      .top .site-title::after{width:110px}
-      .corner{top:26px;right:26px}
-    }
-    @page{size:landscape;margin:10mm}
     @media print{
+      @page{size:landscape;margin:10mm}
       body{background:white}
-      .sheet{margin:0;max-width:none;border:0;box-shadow:none;padding:0}
-      .corner,.footer{display:none}
-      .top,.job,.job-head,.root,.lead,.notes{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .side-nav,.bottom-nav,.slim-actions,.find-me,.more-sheet,.more-backdrop,.version-footer{display:none}
+      .page-shell{width:auto;padding:0;margin:0}
+      .job.dim{opacity:1}
+      .job.mine{box-shadow:none}
+      mark.me{background:none;box-shadow:none}
+      .slim-bar,.job,.lead,.notes{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     }
   </style>
 </head>
 <body>
-  <div class="sheet">
-    <div class="top">
-      <img class="logo" src="assets/CBPS_NB.png" alt="Coastal Bend Power Services">
-      <div>
-        <h1 class="site-title">White<span class="title-hub">Board</span></h1>
-      </div>
-    </div>
+<script>try { if (localStorage.getItem("powerhubSidebarCollapsed") === "1") document.documentElement.classList.add("sb-collapsed"); } catch (e) {}</script>
+<div class="app-shell">
+  <nav class="side-nav" aria-label="Main navigation">
+    <button class="side-toggle" type="button" id="sideToggle" aria-label="Collapse sidebar" aria-expanded="true" title="Collapse sidebar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 7-5 5 5 5M18 7l-5 5 5 5"/></svg>
+    </button>
+    <a class="side-link" href="https://coastalbendpower.github.io/PowerHub/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+      <span>PowerHub<small>Home</small></span>
+    </a>
+    <a class="side-link is-active" href="./view.html" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H4zM8 20h8M12 16v4"/></svg>
+      <span>Whiteboard</span>
+    </a>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span>Timesheet</span><em class="side-soon">Soon</em>
+    </span>
+    <a class="side-link" href="https://account.sharesync.serverdata.net/login/v1.2/?client_id=sharesync_web_app_sts&amp;client_type=Sync-WebApp&amp;client_version=3.48.1&amp;application_client_id=5d5c5f78-10b2-0f0b-a925-606d43526abe&amp;redirect_uri=https%3A%2F%2Fsharesync.serverdata.net%2Fus4%2F&amp;locale=en-us" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>ShareSync</span>
+    </a>
+    <div class="side-group-label">Safety</div>
+    <a class="side-link" href="https://coastalbendpower.github.io/SafetyHQ/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 8.2 8 9 4.6-.8 8-4 8-9V6z"/></svg>
+      <span>SafetyHQ</span>
+    </a>
+    <a class="side-link" href="https://coastalbendpower.github.io/SafetyHQ/procedures.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"/></svg>
+      <span>Procedures</span>
+    </a>
+    <a class="side-link" href="https://coastalbendpower.na.hsiplatform.com/users/sign_in" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 8-4v6h2V8zM6 12.5v4c0 1.7 2.7 3 6 3s6-1.3 6-3v-4l-6 3z"/></svg>
+      <span>Training</span>
+    </a>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4a1 1 0 0 0 1 1h3l6 4V5L7 9H4a1 1 0 0 0-1 1zM17 8.5a5 5 0 0 1 0 7"/></svg>
+      <span>LiveWire</span><em class="side-soon">Soon</em>
+    </span>
+    <div class="side-group-label">Admin / HR</div>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></svg>
+      <span>Org Chart</span><em class="side-soon">Soon</em>
+    </span>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>
+      <span>Company Policies</span><em class="side-soon">Soon</em>
+    </span>
+    <span class="side-link is-disabled" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h6"/></svg>
+      <span>Forms Library</span><em class="side-soon">Soon</em>
+    </span>
+    <div class="side-spacer"></div>
+  </nav>
 
-    <div class="corner">
-      <a class="ph-home" href="https://coastalbendpower.github.io/PowerHub/" title="Back to PowerHub" aria-label="Back to PowerHub"><img src="assets/button_Return_to_PowerHub_round_300.png" alt="Return to PowerHub"></a>
-      <button class="edit-btn" id="editBtn" type="button" onclick="openEditor()" title="Editors: unlock to edit" aria-label="Unlock to edit"></button>
-    </div>
+  <main class="page-shell">
+    <header class="slim-bar">
+      <img class="slim-seal" src="assets/CBPS_NB.png" alt="Coastal Bend Power Services" width="48" height="48">
+      <div class="slim-brand">
+        <h1 class="slim-title">White<span class="title-hub">Board</span></h1>
+        <p class="slim-tagline">Jobs. Crews. Weekly assignments.</p>
+      </div>
+      <div class="slim-actions">
+        <button class="edit-btn" id="editBtn" type="button" onclick="openEditor()" title="Editors: unlock to edit" aria-label="Unlock to edit"></button>
+      </div>
+    </header>
 
     <div id="chart"><div class="message">Loading crew assignments…</div></div>
+
+    <footer class="version-footer"><span id="meta">Loading…</span><br>WhiteBoard — v0.8.23 · View only</footer>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Primary">
+  <a class="bn-item" href="https://coastalbendpower.github.io/PowerHub/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+  <a class="bn-item is-active" href="./view.html" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H4zM8 20h8M12 16v4"/></svg><span>Whiteboard</span></a>
+  <a class="bn-item" href="https://coastalbendpower.github.io/SafetyHQ/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 8.2 8 9 4.6-.8 8-4 8-9V6z"/></svg><span>SafetyHQ</span></a>
+  <a class="bn-item" href="https://coastalbendpower.na.hsiplatform.com/users/sign_in" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 8-4v6h2V8zM6 12.5v4c0 1.7 2.7 3 6 3s6-1.3 6-3v-4l-6 3z"/></svg><span>Training</span></a>
+  <button class="bn-item" type="button" id="bnMore" aria-expanded="false" aria-controls="moreSheet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
+</nav>
+<div class="more-backdrop" id="moreBackdrop"></div>
+<div class="more-sheet" id="moreSheet" role="dialog" aria-label="All links"><div class="more-grip"></div><div class="more-body" id="moreBody"></div></div>
+
+  <div class="modal-backdrop" id="meModal">
+    <div class="modal-card">
+      <h3>Find me</h3>
+      <p>Pick your name. This phone will highlight your jobs from now on.</p>
+      <select class="pin-input" id="meSelect" aria-label="Your name"></select>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" onclick="closeMe()">Cancel</button>
+        <button class="btn-primary" type="button" onclick="setMe(document.getElementById('meSelect').value)">Show me</button>
+      </div>
+    </div>
   </div>
-  <div class="footer"><span id="meta">Loading…</span><br>WhiteBoard — v0.8.18 · View only</div>
 
   <div class="modal-backdrop" id="pinModal">
     <div class="modal-card">
@@ -228,13 +260,40 @@ function escapeHtml(str){
   return String(str || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
 }
 
+// "Find me": each phone remembers who's looking and highlights their jobs.
+const ME_KEY = 'cbpsWhiteboardMe';
+let BOARD = null;
+
+function getMe(){ try { return localStorage.getItem(ME_KEY) || ''; } catch (e) { return ''; } }
+function setMe(id){
+  try { id ? localStorage.setItem(ME_KEY, id) : localStorage.removeItem(ME_KEY); } catch (e) {}
+  closeMe();
+  render(BOARD);
+  const first = document.querySelector('.job.mine');
+  if (first) first.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+function openFindMe(){
+  const select = document.getElementById('meSelect');
+  select.innerHTML = '<option value="">Select your name</option>' +
+    BOARD.people.filter(p => p.visible).sort((a, b) => a.name.localeCompare(b.name))
+      .map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</option>`).join('');
+  select.value = getMe();
+  document.getElementById('meModal').style.display = 'flex';
+}
+function closeMe(){ document.getElementById('meModal').style.display = 'none'; }
+
 function render(board){
+  BOARD = board;
+  const me = getMe();
   const people = {};
   board.people.forEach(p => { people[p.id] = p; });
   const isShown = id => people[id] && people[id].visible;
   const jobsFor = {};
   board.assignments.forEach(a => { (jobsFor[a.nodeId] = jobsFor[a.nodeId] || new Set()).add(a.jobNo); });
   const pill = id => jobsFor[id] && jobsFor[id].size > 1 ? `<span class="job-pill">${jobsFor[id].size} jobs</span>` : '';
+  const meOk = me && people[me] && people[me].visible;
+  const nameOf = id => id === me ? `<mark class="me">${escapeHtml(people[id].name)}</mark>` : escapeHtml(people[id].name);
 
   const jobs = board.jobs
     .filter(j => j.onBoard)
@@ -247,7 +306,8 @@ function render(board){
       .map(a => people[a.nodeId])
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    return `<div class="job">
+    const mine = meOk && onJob.some(a => a.nodeId === me);
+    return `<div class="job${meOk ? (mine ? ' mine' : ' dim') : ''}">
       <div class="job-head">
         <div class="job-no">${escapeHtml(job.jobNo)}</div>
         ${job.customer ? `<div class="job-customer">${escapeHtml(job.customer)}</div>` : ''}
@@ -256,12 +316,12 @@ function render(board){
       <div class="lead">
         <div class="label">Lead</div>
         ${lead
-          ? `<div class="name">${escapeHtml(people[lead.nodeId].name)}${pill(lead.nodeId)}</div><div class="person-title">${escapeHtml(people[lead.nodeId].title)}</div>`
+          ? `<div class="name">${nameOf(lead.nodeId)}${pill(lead.nodeId)}</div><div class="person-title">${escapeHtml(people[lead.nodeId].title)}</div>`
           : '<div class="none">Not set</div>'}
       </div>
       ${crew.length ? `<div class="crew">
         <div class="label">Crew</div>
-        <ul>${crew.map(p => `<li>${escapeHtml(p.name)}${pill(p.id)}<span class="person-title">${escapeHtml(p.title)}</span></li>`).join('')}</ul>
+        <ul>${crew.map(p => `<li>${nameOf(p.id)}${pill(p.id)}<span class="person-title">${escapeHtml(p.title)}</span></li>`).join('')}</ul>
       </div>` : ''}
       ${job.notes ? `<div class="notes">${escapeHtml(job.notes)}</div>` : ''}
     </div>`;
@@ -273,7 +333,10 @@ function render(board){
     .sort((a, b) => a.name.localeCompare(b.name));
 
   document.getElementById('chart').innerHTML = jobs.length
-    ? `<div class="job-count">${jobs.length} active job${jobs.length === 1 ? '' : 's'}</div>
+    ? `<div class="chart-bar">
+         <div class="job-count">${jobs.length} active job${jobs.length === 1 ? '' : 's'}</div>
+         ${findMeMarkup(board, meOk ? me : '', people)}
+       </div>
        <div class="jobs">${jobHtml}</div>
        ${available.length ? `<div class="available">
          <h3>Available / Unassigned (${available.length})</h3>
@@ -291,6 +354,69 @@ function render(board){
   document.getElementById('meta').textContent = meta;
 }
 
+function findMeMarkup(board, me, people){
+  if (!me) return '<button class="find-me" type="button" onclick="openFindMe()">📍 Find me</button>';
+  const mine = board.assignments.filter(a => a.nodeId === me && board.jobs.some(j => j.jobNo === a.jobNo && j.onBoard));
+  const where = mine.length
+    ? 'on ' + mine.map(a => a.jobNo + (a.role === 'Lead' ? ' (Lead)' : '')).join(', ')
+    : 'not assigned';
+  return `<span class="find-me set">
+      <button type="button" onclick="openFindMe()">📍 ${escapeHtml(people[me].name)} · ${escapeHtml(where)}</button>
+      <button type="button" class="clear" onclick="setMe('')" aria-label="Stop highlighting">✕</button>
+    </span>`;
+}
+
+
+// Collapsible sidebar and phone More menu, same as the editor page.
+(function () {
+  const sideToggle = document.getElementById('sideToggle');
+  document.querySelectorAll('.side-nav .side-link').forEach(link => {
+    const label = (link.querySelector('span')?.firstChild?.textContent || '').trim();
+    if (!label) return;
+    link.title = link.classList.contains('is-disabled') ? label + ' (coming soon)' : label;
+    link.setAttribute('aria-label', label);
+  });
+  const apply = collapsed => {
+    document.documentElement.classList.toggle('sb-collapsed', collapsed);
+    if (!sideToggle) return;
+    const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    sideToggle.setAttribute('aria-expanded', String(!collapsed));
+    sideToggle.setAttribute('aria-label', label);
+    sideToggle.title = label;
+  };
+  apply(document.documentElement.classList.contains('sb-collapsed'));
+  sideToggle?.addEventListener('click', () => {
+    const next = !document.documentElement.classList.contains('sb-collapsed');
+    apply(next);
+    try { localStorage.setItem('powerhubSidebarCollapsed', next ? '1' : '0'); } catch (e) {}
+  });
+
+  const moreBtn = document.getElementById('bnMore'), sheet = document.getElementById('moreSheet');
+  const backdrop = document.getElementById('moreBackdrop'), moreBody = document.getElementById('moreBody');
+  if (moreBtn && sheet && backdrop && moreBody) {
+    const setMore = open => {
+      if (open && !moreBody.children.length) {
+        document.querySelectorAll('.side-nav > *').forEach(node => {
+          if (node.classList.contains('side-toggle')) return;
+          const copy = node.cloneNode(true);
+          copy.removeAttribute('id');
+          copy.classList.remove('is-active');
+          moreBody.appendChild(copy);
+        });
+      }
+      sheet.classList.toggle('is-open', open);
+      backdrop.classList.toggle('is-open', open);
+      moreBtn.setAttribute('aria-expanded', String(open));
+    };
+    moreBtn.addEventListener('click', () => setMore(!sheet.classList.contains('is-open')));
+    backdrop.addEventListener('click', () => setMore(false));
+    moreBody.addEventListener('click', event => {
+      const link = event.target.closest('.side-link');
+      if (link && !link.classList.contains('is-disabled')) setMore(false);
+    });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') setMore(false); });
+  }
+})();
 setEditIcon();
 
 fetch(API_URL + '?action=getBoard')
